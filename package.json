@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "docs:dev": "vuepress dev docs",
-    "docs:build": "vuepress build docs",
+    "docs:dev": "cross-env NODE_ENV=dev vuepress dev docs",
+    "docs:build": "cross-env NODE_ENV=production vuepress build docs",
     "deploy": "bash deploy.sh"
   },
   "keywords": [],
@@ -13,6 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "@vuepress/plugin-nprogress": "^1.7.1",
+    "cross-env": "^7.0.2",
     "vuepress": "^1.7.1"
   },
   "dependencies": {

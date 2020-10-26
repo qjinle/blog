@@ -33,6 +33,17 @@ module.exports = {
       ]
     },
     sidebarDepth: '3',
-    lastUpdated: '更新时间'
+    lastUpdated: '更新时间',
+    // github 设置
+    repo: 'JINLE0703/blog',
+    repoLabel: 'Github',
+    // 假如文档不是放在仓库的根目录下：
+    docsDir: 'docs',
+    // 假如文档放在一个特定的分支下：
+    docsBranch: 'main',
+    // 默认是 false, 设置为 true 来启用
+    editLinks: true,
+    // 默认为 "Edit this page"
+    editLinkText: 'edit this page'
   }
 }
