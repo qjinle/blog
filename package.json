@@ -1,0 +1,17 @@
+{
+  "name": "blog-vuepress",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "docs:dev": "vuepress dev docs",
+    "docs:build": "vuepress build docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vuepress/plugin-nprogress": "^1.7.1",
+    "vuepress": "^1.7.1"
+  }
+}
