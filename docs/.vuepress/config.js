@@ -23,6 +23,7 @@ module.exports = {
         'CSS',
         'JavaScript',
         'Vue',
+        'React',
         'Node',
         'Koa',
         '浏览器相关',
