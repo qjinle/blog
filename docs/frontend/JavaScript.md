@@ -31,38 +31,11 @@ console.log(b.age); // 21 (b.age随a.age的改变而改变)
 
 #### 类型判断
 
-​	typeof：识别所以值类型 ( undefined string number boolean symbol )、识别函数 ( function ) 、判断是否是引用类型（无法细分）
+`typeof`：识别所以值类型 ( undefined string number boolean symbol )、识别函数 ( function ) 、判断是否是引用类型（无法细分）
 
-​	instanceof：判断数组、对象、正值表达式，返回布尔值
+`instanceof`：判断数组、对象、正值表达式，返回布尔值
 
-#### 手写深拷贝
-
-```javascript
-function deepClone(obj = {}) {
-    // 判断类型
-    if (typeof obj !== 'object' || obj == null) {
-        return obj;
-    }
-
-    let result;
-    // 判断 obj 是不是数组
-    if (obj instanceof Array) {
-        result = [];
-    } else {
-        result = {};
-    }
-
-    for (let key in obj) {
-        // 保证 key 不是原型的属性
-        if (obj.hasOwnProperty(key)) {
-            // 递归
-            result[key] = deepClone(obj[key]);
-        }
-    }
-
-    return result;
-};
-```
+`Object.prototype.toString.call`：返回 `[object, xxx]`，xxx 为目标类型
 
 #### 类型转换
 
@@ -84,7 +57,7 @@ function deepClone(obj = {}) {
 !!false === false;
 ```
 
-#### var 和 let const 的区别
+#### var let const
 
 var 是 ES5 语法，let const 是 ES6 的语法；var有变量提升
 
@@ -96,61 +69,27 @@ let const 有块级作用域
 
 隐式：if、逻辑运算、==、+ 拼接字符串
 
-#### 手写深度比较 lodash.isEqual
 
-```js
-// 全相等（深度）
-function isEqual(obj1, obj2) {
-    // 判断是否是对象或数组
-    function isObject(obj) {
-        return typeof obj === 'object' && obj !== null
-    }
-    if (!isObject(obj1) || !isObject(obj2)) {
-        // 值类型（注意，参与 equal 的一般不会是函数）
-        return obj1 === obj2
-    }
-    if (obj1 === obj2) {
-        return true
-    }
-    // 两个都是对象或数组，而且不相等
-    // 1. 先取出 obj1 和 obj2 的 keys ，比较个数
-    const obj1Keys = Object.keys(obj1)
-    const obj2Keys = Object.keys(obj2)
-    if (obj1Keys.length !== obj2Keys.length) {
-        return false
-    }
-    // 2. 以 obj1 为基准，和 obj2 一次递归比较
-    for (let key in obj1) {
-        // 比较当前 key 的 val —— 递归！！！
-        const res = isEqual(obj1[key], obj2[key])
-        if (!res) {
-            return false
-        }
-    }
-    // 3. 全相等
-    return true
-}
-```
-
-#### split() 和 join() 的区别
-
-`split()`：用于把一个字符串分割成字符串数组，需填入指定分隔符
-
-`join()`：用于把数组中的所有元素放入一个字符串，元素是通过指定的分隔符进行分隔的
 
 ## 数组
 
-#### 数组的 pop push unshift shift 分别是什么
+#### 判断数组
 
-`pop()`：删除数组的最后一个元素，返回被删除元素，会改变原数组
+```js
+var arr = []
 
-`push()`：向数组的末尾添加一个或多个元素，返回新的长度，会改变原数组
+arr instanceof Array
 
-`unshift()`：向数组的开头添加一个或更多元素，返回新的长度，会改变原数组
+Array.prototype.isPrototypeOf(arr)
 
-`shift()`：删除数组的第一个元素，返回被删除元素，会改变原数组
+arr.constructor === Array
 
-#### 数组的纯函数
+Object.prototype.toString.call(arr) === "[object Array]"
+
+Array.isArray(arr)
+```
+
+#### 纯函数
 
 纯函数：1. 不改变源数组（没有副作用）；2. 返回一个数组
 
@@ -162,7 +101,7 @@ function isEqual(obj1, obj2) {
 
 `slice(start,end)`：从已有的数组中返回选定的元素
 
-#### 数组 slice 和 splice 的区别
+####  slice 和 splice
 
 `slice(start,end)`：数组从 start 开始截取到 end（如果未定义 end 则到结束），返回新数组为被截取数组，不改变原数组
 
@@ -182,13 +121,7 @@ console.log(res) //[10, NAN, NAN]
 
 `parseInt(string,radix)`：radix 代表该进位系统的数字，比如 10 代表十进制
 
-#### 函数声明和函数表达式
-
-函数声明：函数预加载（类似变量提升） `function() {}` 
-
-函数表达式：先定义再赋值 `const fn = function() {}`
-
-#### 数组拍平，手写 flatern
+#### 数组拍平
 
 ```js
 function flat(arr) {
@@ -227,9 +160,107 @@ function unique(arr) {
 }
 ```
 
+## 函数
+
+函数声明：函数预加载（类似变量提升） `function() {}` 
+
+函数表达式：先定义再赋值 `const fn = function() {}`
+
+#### split() 和 join()
+
+`split()`：用于把一个字符串分割成字符串数组，需填入指定分隔符
+
+`join()`：用于把数组中的所有元素放入一个字符串，元素是通过指定的分隔符进行分隔的
+
+#### 手写深拷贝
+
+```javascript
+function deepClone(obj = {}) {
+    // 判断类型
+    if (typeof obj !== 'object' || obj == null) {
+        return obj;
+    }
+
+    let result;
+    // 判断 obj 是不是数组
+    if (obj instanceof Array) {
+        result = [];
+    } else {
+        result = {};
+    }
+
+    for (let key in obj) {
+        // 保证 key 不是原型的属性
+        if (obj.hasOwnProperty(key)) {
+            // 递归
+            result[key] = deepClone(obj[key]);
+        }
+    }
+
+    return result;
+};
+```
+
+#### 手写 bind 函数
+
+```javascript
+// 模拟 bind
+Function.prototype.bind1 = function () {
+    // 将参数拆解为数组
+    const args = Array.prototype.slice.call(arguments)
+
+    // 获取 this（数组第一项）
+    const t = args.shift()
+
+    // fn1.bind(...) 中的 fn1
+    const self = this
+
+    // 返回一个函数
+    return function () {
+        return self.apply(t, args)
+    }
+}
+```
+
+#### 手写深度比较
+
+```js
+// 全相等（深度）
+function isEqual(obj1, obj2) {
+    // 判断是否是对象或数组
+    function isObject(obj) {
+        return typeof obj === 'object' && obj !== null
+    }
+    if (!isObject(obj1) || !isObject(obj2)) {
+        // 值类型（注意，参与 equal 的一般不会是函数）
+        return obj1 === obj2
+    }
+    if (obj1 === obj2) {
+        return true
+    }
+    // 两个都是对象或数组，而且不相等
+    // 1. 先取出 obj1 和 obj2 的 keys ，比较个数
+    const obj1Keys = Object.keys(obj1)
+    const obj2Keys = Object.keys(obj2)
+    if (obj1Keys.length !== obj2Keys.length) {
+        return false
+    }
+    // 2. 以 obj1 为基准，和 obj2 一次递归比较
+    for (let key in obj1) {
+        // 比较当前 key 的 val —— 递归！！！
+        const res = isEqual(obj1[key], obj2[key])
+        if (!res) {
+            return false
+        }
+    }
+    // 3. 全相等
+    return true
+}
+```
+
 ## 事件
 
-#### 编写一个通用的事件监听函数
+#### 通用事件监听函数
 
 ```js
 // 通用的事件绑定函数
@@ -257,7 +288,7 @@ function bindEvent(elem, type, selector, fn) {
 
 `event.stopProgagation`：阻止冒泡
 
-#### 事件代理（监听无限列表）
+#### 事件代理
 
 代码简洁、减少浏览器内存占用、但是不要滥用
 
@@ -279,19 +310,7 @@ div1.addEventListener('click', event => {
 
 `__proto__`：隐式原型
 
-#### 如何准确判断一个变量是不是数组
-
-instanceof：判断数组、对象、正值表达式，返回布尔值
-
-```javascript
-a instanceof Array  // true
-```
-
-#### 手写一个简易的JQuery，考虑插件和扩展性
-
-#### class的原型本质，怎么理解
-
-#### new Object() 和 Object.crate() 区别
+#### new Object() 和 Object.crate() 
 
 {} 等同于 new Object()，原型 Object.prototype
 
@@ -351,27 +370,6 @@ const func = User.getCount
 console.log(func()) // undefined
 ```
 
-#### 手写 bind 函数
-
-```javascript
-// 模拟 bind
-Function.prototype.bind1 = function () {
-    // 将参数拆解为数组
-    const args = Array.prototype.slice.call(arguments)
-
-    // 获取 this（数组第一项）
-    const t = args.shift()
-
-    // fn1.bind(...) 中的 fn1
-    const self = this
-
-    // 返回一个函数
-    return function () {
-        return self.apply(t, args)
-    }
-}
-```
-
 #### 闭包实际应用
 
 ​	隐藏数据
@@ -397,7 +395,7 @@ function createCache() {
 
 异步基于 JS 单线程语言，不会阻塞代码执行；同步会阻塞代码执行。
 
-#### 手写 Promise 加载一张图片
+#### 手写 Promise 加载图片
 
 ```javascript
 function loadImg(src) {
@@ -416,7 +414,7 @@ function loadImg(src) {
 }
 ```
 
-#### 描述 event loop 运行机制（可画图）
+#### event loop 运行机制
 
 event loop执行过程：
 
@@ -428,7 +426,7 @@ event loop执行过程：
 6. 轮询查找 Callback Queue，如有则移动到 Call Stack执行
 7. .然后继续轮询查找
 
-#### Promise 哪几种状态，如何变化？
+#### Promise 状态
 
 1. pending 状态：不会触发 then 或 catch
 2. resolved 状态：会触发后续的 then 回调函数 
@@ -438,43 +436,7 @@ event loop执行过程：
 
 **catch() 不抛出错误，会返回 resolved 状态的 promise，catch() 抛出错误，会返回 rejected 状态的 promise**
 
-#### 场景题 Promise catch 连接 then
-
-```js
-// 第一题
-Promise.resolve().then(() => {
-    console.log(1)
-}).catch(() => {
-    console.log(2)
-}).then(() => {
-    console.log(3)
-})
-// 1 3
-
-// 第二题
-Promise.resolve().then(() => { // 返回 rejected 状态的 promise
-    console.log(1)
-    throw new Error('erro1')
-}).catch(() => { // 返回 resolved 状态的 promise
-    console.log(2)
-}).then(() => {
-    console.log(3)
-})
-// 1 2 3
-
-// 第三题
-Promise.resolve().then(() => { // 返回 rejected 状态的 promise
-    console.log(1)
-    throw new Error('erro1')
-}).catch(() => { // 返回 resolved 状态的 promise
-    console.log(2)
-}).catch(() => {
-    console.log(3)
-})
-// 1 2 
-```
-
-#### async/await 和 Promise 的关系
+#### async/await
 
 1. 执行 async 函数，返回的是 Promise 对象
 2. await 相当于 Promise 的 then
@@ -482,7 +444,7 @@ Promise.resolve().then(() => { // 返回 rejected 状态的 promise
 
 **await 后面的代码相当于放在 callback 回调中执行，要等同步代码执行完才执行**
 
-#### for...of 异步遍历
+#### for...of 
 
 ```js
 // 定时算乘法
@@ -511,7 +473,7 @@ test2()
 - 微任务：Promise async/await，DOM 渲染前会触发
 - 微任务比宏任务执行的更早
 
-#### 执行顺序问题
+#### 执行顺序
 
 ```js
 async function async1 () {
@@ -553,7 +515,7 @@ console.log('script end') // 5
 
 ## AJAX
 
-#### 手写原生ajax
+#### 手写 ajax
 
 ```js
 function ajax(url) {
@@ -573,33 +535,6 @@ function ajax(url) {
     })
 }
 ```
-
-#### 跨域的常用实现方式
-
-JSONP原理：script标签跨域
-
-```
-使用 jsonp 来实现跨域请求，它的主要原理是通过动态构建 script 标签来实现跨域请求，因为浏览器对 script 标签的
-引入没有跨域的访问限制。通过在请求的 url 后指定一个回调函数，然后服务器在返回数据的时候，构建一个 json 数据的
-包装，这个包装就是回调函数，然后返回给前端，前端接收到数据后，因为请求的是脚本文件，所以会直接执行，这样我们先前
-定义好的回调函数就可以被调用，从而实现了跨域请求的处理。这种方式只能用于 get 请求。
-```
-
-CORS：纯服务端
-
-```
-使用 CORS 的方式，CORS 是一个 W3C 标准，全称是"跨域资源共享"。CORS 需要浏览器和服务器同时支持。目前，所有浏
-览器都支持该功能，因此我们只需要在服务器端配置就行。浏览器将 CORS 请求分成两类：简单请求和非简单请求。
-
-对于简单请求，浏览器直接发出 CORS 请求。具体来说，就是会在头信息之中，增加一个 Origin 字段。Origin 字段用来
-说明本次请求来自哪个源。服务器根据这个值，决定是否同意这次请求。对于如果 Origin 指定的源，不在许可范围内，服务
-器会返回一个正常的 HTTP 回应。浏览器发现，这个回应的头信息没有包含 Access-Control-Allow-Origin 字段，就
-知道出错了，从而抛出一个错误，ajax 不会收到响应信息。如果成功的话会包含一些以 Access-Control- 开头的字段。
-
-非简单请求，浏览器会先发出一次预检请求，来判断该域名是否在服务器的白名单中，如果收到肯定回复后才会发起请求。
-```
-
-websocket 协议
 
 #### get 和 post 的区别
 

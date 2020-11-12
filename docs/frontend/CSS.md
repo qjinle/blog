@@ -5,17 +5,17 @@ lang: zh-CN
 
 ## 布局
 
-### 盒子模型的宽度如何计算
+#### 盒子模型的宽度
 
 ​	offsetWidth = 内容宽度 + 内边距 + 边框 （无外边距）
 
 ​	`box-sizing: border-box;`设置后，offsetWidth  = width
 
-### margin 纵向重叠的问题
+#### margin 纵向重叠
 
 ​	相邻元素的 margin-top 和 margin-bottom 会发生重叠，空白内容也会重叠
 
-### margin 负值的问题
+#### margin 负值
 
 ​	margin-top 和 margin-left 负值，元素向上、向左移动 
 
@@ -23,7 +23,7 @@ lang: zh-CN
 
 ​	margin-bottom 负值，下方元素上移，自身不受影响
 
-### BFC 理解和应用
+#### BFC
 
 ​	BFC，Block formmat context，块级格式化上下文。它是一块独立的区域，内部元素的渲染不会影响边界以外的元素。BFC 的意思是形成一个范围，让内部元素不能脱离这个范围。
 
@@ -37,7 +37,7 @@ lang: zh-CN
 
 - display 是 flex 或者 inline-block
 
-### float 布局的问题
+#### float 布局
 
 ​	圣杯布局和双飞翼布局
 
@@ -50,7 +50,7 @@ lang: zh-CN
   - 两侧使用margin负值，以便和中间内容横向重叠
   - 防止中间内容被两侧覆盖，一个用padding一个用margin
 
-### 手写清除浮动clearfix
+#### 手写清除浮动clearfix
 
 ```css
 /* 手写 clearfix */
@@ -61,7 +61,7 @@ lang: zh-CN
 }
 ```
 
-### flex 布局，画色子
+#### flex 布局
 
 ​	父项常见属性：
 
@@ -80,13 +80,13 @@ lang: zh-CN
 
 ## 定位
 
-### absolute 和 relative 分别依据什么定位
+#### absolute 和 relative
 
 ​	relative 依据自身定位
 
 ​	absolute 依据最近一层的定位元素定位
 
-### 居中对齐有哪些实现方式
+#### 居中对齐
 
 ​	水平居中：
 
@@ -101,21 +101,21 @@ lang: zh-CN
 - absolute 元素：left: 50% + top: 50% + transform: translate(-50%, -50%) 
 - absolute 元素：top left bottom right = 0 + margin: auto
 
-### 图文样式
+## 图文样式
 
-#### line-height 的继承问题
+#### line-height 继承
 
 - 写具体数值，如 30px 则继承该值
 - 写比例，如 1.5 或 2 那就继承这个比例 
 - 写百分比，如200%，则继承计算（font-size * line-height）出来的值（考点）
 
-### 响应式
+## 响应式
 
-#### rem 是什么
+#### rem
 
 ​	rem是一个长度单位，相对于html根元素的font-size的值
 
-#### 如何实现响应式
+#### 如何实现
 
 ​	媒体查询屏幕宽度，设置不同的html的font-size
 

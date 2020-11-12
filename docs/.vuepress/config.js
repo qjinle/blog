@@ -4,13 +4,13 @@ module.exports = {
   description: 'this is my blog',
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
-    ['meta', { name: 'author', content: 'Jinle'}],
-    ['meta', { name: 'keywords', content: 'Jinle，博客'}]
+    ['meta', { name: 'author', content: 'Jinle' }],
+    ['meta', { name: 'keywords', content: 'Jinle，博客' }]
   ],
   markdown: {
-    extractHeaders: ['h2', 'h3', 'h4', 'h5']
+    extractHeaders: ['h2', 'h3', 'h4']
   },
-  plugins: ['@vuepress/nprogress'],
+  plugins: ['@vuepress/nprogress', '@vuepress/back-to-top'],
   themeConfig: {
     nav: [
       { text: '主页', link: '/' },
@@ -27,10 +27,13 @@ module.exports = {
         'Node',
         'Koa',
         '浏览器相关',
+        '前端工程化',
         '计算机网络',
         '前端安全',
         '性能优化',
-        '设计模式'
+        '设计模式',
+        '数据结构',
+        '算法'
       ]
     },
     sidebarDepth: '3',

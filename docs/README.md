@@ -6,8 +6,8 @@ tagline: Never Stop Leran
 actionText: enter →
 actionLink: /frontend/
 features:
-- title: 一起学习啊
-  details: 建议问题联系我邮箱
+- title: 广工21届小菜鸡一枚
+  details: 有问题联系邮箱
 - title: Wechat
   details: jinle1998_
 - title: Email

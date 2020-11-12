@@ -236,3 +236,66 @@ render() {
 
 非受控组件破坏了 React 对组件状态的管理，建议尽量不使用
 
+## 错误处理
+
+React 16 提供了一种友好的错误处理方法——错误边界，定义了一个 `componentDidCatch` 的方法用于处理错误。
+
+```jsx
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      hasError: false
+    };
+  }
+
+  componentDidCatch(err, info) {
+    this.setState({ hasError: true });
+    console.log(err, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>error</h1>;
+    }
+    return this.props.children;
+  }
+}
+```
+
+## portals 弹窗
+
+React 16 的 portals 特性让我们可以把组件渲染到当前组件树以外的 DOM 节点上，其实现依赖一个新的 API：`ReactDOM.createPortal(child, container)`。
+
+`child`：可以被渲染的 React 节点
+
+`container`：一个 DOM 元素，child 将挂载在这
+
+```jsx
+class Modal extends React.Component {
+  constructor(props) {
+    super(props);
+    // 根节点下创建 div
+    this.container = document.createElement('div');
+    document.body.appendChild(this.container);
+  }
+
+  componentWillUnmount() {
+    document.body.removeChild(this.container);
+  }
+
+  render() {
+    return ReactDOM.createPortal(
+      <div className='modal'>
+        <span className='close' onClick={this.props.onClose}>
+          &times;
+        </span>
+        <div className='content'>
+          {this.props.children}
+        </div>
+      </div>,
+      this.container
+    )
+  }
+}
+```
