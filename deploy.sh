@@ -20,6 +20,9 @@ git commit -m 'deploy'
 # git push -f git@github.com:<USERNAME>/<USERNAME>.github.io.git master
 
 # 如果发布到 https://<USERNAME>.github.io/<REPO>
-git push -f git@github.com:JINLE0703/blog.git master:gh-pages
+# git push -f git@github.com:JINLE0703/blog.git master:gh-pages
+
+# 如果使用 travis 持续集成
+git push -f https://${access_token}@github.com/JINLE0703/blog.git master:gh-pages
 
 cd -
