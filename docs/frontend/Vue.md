@@ -119,13 +119,40 @@ export default {
 
 #### 生命周期
 
-- beforeCreate
-- created
+从开始创建、初始化数据、编译模板、挂载 DOM、渲染→更新→渲染、销毁等一系列过程，我们称这是 Vue 的生命周期。总共分为三个阶段：初始化、运行中、销毁。
+
+##### 流水线解释
+
+1. 先 new Vue 一个实例
+2. 初始化事件和生命周期
+3. 执行 beforeCreate 函数
+4. 初始化 data，绑定事件等
+5. 执行 created 函数
+6. 编译模板，渲染为内存中的 DOM，还没挂载到页面中
+7. 执行 beforeMount 函数
+8. 将渲染好的 DOM 挂载到实例的 $el 上
+9. 执行 mounted 函数，表示实例初始化完毕
+
+**运行中**
+
+1. 实例的数据更改后，执行 beforeUpadte 函数
+2. 虚拟 DOM 机制根据最新的 data 重新构建 DOM 与上一次的虚拟 DOM 树利用 diff 算法进行对比之后重新渲染
+3. 执行 updated 函数
+
+**销毁**
+
+1. 调用 $destroy 方法后，执行 beforeDestroy 函数，此时 data、方法都还可用
+2. 执行 destroyed 函数
+
+##### 钩子函数
+
+- beforeCreate：此时数据还没挂载，**不要修改 data 数据**，无法访问到数据和 DOM，一般不做操作
+- created：data 数据挂载完成，修改数据不会触发其他钩子，可用于 ajax 请求初始化数据
 - beforeMount
 - mounted
 - beforeUpdate
 - updated
-- beforeDestory
+- beforeDestory：一般在这里做一些善后工作，例如清除计时器、清除非指令绑定的事件等
 - destoryed
 
 #### 自定义 v-model
