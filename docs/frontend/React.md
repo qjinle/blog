@@ -3,6 +3,181 @@ title: React
 lang: zh-CN
 ---
 
+#### props 和 state 
+
+props 和 state 变化都会触发组件重新渲染
+
+props 和 state 更新都是异步的
+
+props 对组件来说时只读的，通过父组件传值，只能在父组件修改
+
+state 是组件内部维护的状态，是可变的
+
+## 组件
+
+### 组件 state
+
+组件 state 一般代表一个组件 UI 呈现的完整状态集，数据一般为：
+
+1. 渲染组件时使用到的数据来源
+2. 用作组件 UI 展现的判断依据
+
+> 如果变量通过其他状态或属性计算得到，不推荐定义为一个 state
+>
+> 如果变量在 render 中没有使用，不推荐定义为一个 state，更适合为一个普通属性
+
+#### 修改 state 的一些坑
+
+state 直接修改不会触发 render，正确用法为 setState()
+
+调用 setState() 时不会立即更新，setState() 只是把修改状态放入一个队列，等 React 优化真正的执行时机，出于性能考虑，会合并多次 setState()
+
+如果此次 setState() 依赖前一次 setState() 的参数：
+
+```jsx
+this.setState((preState, props) => ({
+	counter: preState.quantity + 1;
+}))
+// preState 当前状态的前一状态（本次组件修改前的状态）
+// props 当前最新属性
+```
+
+##### 状态类型是数组
+
+1. 使用 preState、concat 创建新数
+
+   ```jsx
+   this.setState(preState => ({
+   	books: preState.books.concat(['React']);
+   }))
+   ```
+
+2. ES6 扩展语法
+
+   ```jsx
+   this.setState(preState => ({
+   	books: [...preState.books, 'React'];
+   }))
+   ```
+
+截取部分元素可用 slice，过滤可用 filter
+
+> 不使用 push、pop、shift、unshift、splice 等修改数组类型的状态
+
+##### 状态类型是普通对象
+
+1. 使用 Object.assign
+
+   ```jsx
+   this.setState(preState => ({
+   	owner: Object.assign({}, preState.owner, {name: 'Jinle'})
+   }))
+   ```
+
+2. ES6 扩展语法
+
+   ```jsx
+   this.setState(preState => ({
+   	owner: {...preState.owner, name: 'Jinle'}
+   }))
+   ```
+
+### 组件通信
+
+#### 父子组件通信
+
+父组件通过 props 传递数据给子组件
+
+子组件通过调用父组件传递的 props 上的函数，实现向父组件通信
+
+#### 非父子组件通信
+
+可以借助 context（慎用，会使数据流混乱），情况复杂用 Redux
+
+##### context
+
+Context 设计目的是为了共享那些对于一个组件树而言是**全局**的数据，例如当前认证的用户、主题或首选语言。可以避免通过中间组件传递 props。
+
+```jsx
+// Context 可以让我们无须明确地传遍每一个组件，就能将值深入传递进组件树。
+// 为当前的 theme 创建一个 context（“light”为默认值）。
+const ThemeContext = React.createContext('light');
+class App extends React.Component {
+  render() {
+    // 使用一个 Provider 来将当前的 theme 传递给以下的组件树。
+    // 无论多深，任何组件都能读取这个值。
+    // 在这个例子中，我们将 “dark” 作为当前的值传递下去。
+    return (
+      <ThemeContext.Provider value="dark">
+        <Toolbar />
+      </ThemeContext.Provider>
+    );
+  }
+}
+
+// 中间的组件再也不必指明往下传递 theme 了。
+function Toolbar() {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  );
+}
+
+class ThemedButton extends React.Component {
+  // 指定 contextType 读取当前的 theme context。
+  // React 会往上找到最近的 theme Provider，然后使用它的值。
+  // 在这个例子中，当前的 theme 值为 “dark”。
+  static contextType = ThemeContext;
+  render() {
+    return <Button theme={this.context} />;
+  }
+}
+```
+
+### 组件和服务端通信
+
+一般在 componentWillMount 和 componentDidMount 中发送 ajax 请求通信
+
+componentDidMount 会更优选：
+
+1. componentDidMount 保证获取数据时组件以及处于挂载状态，操作 DOM 比较安全
+2. 组件服务端渲染时，componentDidMount 调用一次，componentWillMount 调用两次，可以避免多余的数据请求
+
+在组件更新阶段，组件以 props 中某个属性作为请求参数时，可用 componentWillReceiveProps 来与服务端通信，通过判断新老 props 是否相同来判断是否发送请求
+
+## Refs
+
+何时使用 refs：
+
+- 管理焦点，文本选择或媒体播放
+- 触发强制动画
+- 集成第三方 DOM 库
+
+```jsx
+class App extends React.Component {
+    constructor(props) {
+        super(props)
+        // 创建
+        this.myRef = React.createRef()
+    }
+
+    handleClick = () => {
+        this.myRef.current.focus()
+    }
+
+    render() {
+        return (
+            <div>
+            	// 绑定
+                <input type="text" ref={this.myRef} />
+                <button onClick={this.handleClick}>点我</button>
+            </div>
+        )
+    }
+}
+```
+
 ## 事件处理
 
 事件命名采用驼峰命名法（onclick 写成 onClick）
