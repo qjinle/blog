@@ -3,19 +3,62 @@ title: React
 lang: zh-CN
 ---
 
-#### props 和 state 
+## 理解React
 
-props 和 state 变化都会触发组件重新渲染
+声明式开发、组件化开发、单向数据流、视图层框架、函数式编程
 
-props 和 state 更新都是异步的
+#### 性能优化
 
-props 对组件来说时只读的，通过父组件传值，只能在父组件修改
-
-state 是组件内部维护的状态，是可变的
+1. 函数绑定 this 放在 constructor 里面
+2. setState 异步函数，合并多次处理
+3. 虚拟 DOM
+4. shouldComponentUpdate 减少不必要的 render 组件渲染
 
 ## 组件
 
-### 组件 state
+### props
+
+#### 类型检查 PropTypes
+
+PropTypes 进行类型检查，defaultProps 确保父组件没有指定值时有一个默认值，详细参考官方文档
+
+```jsx
+import PropTypes from 'prop-types';
+
+class Greeting extends React.Component {
+  render() {
+    return (
+      <h1>Hello, {this.props.name}</h1>
+    );
+  }
+}
+
+Greeting.propTypes = {
+  // 可以在任何 PropTypes 属性后面加上 isRequired ，确保这个 prop 没有被提供时，会打印警告信息。
+  name: PropTypes.string.isRequired,
+  // 一个对象可以是几种类型中的任意一个类型
+  optionalUnion: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number
+  ]),
+  // 可以指定一个数组由某一类型的元素组成
+  optionalArrayOf: PropTypes.arrayOf(PropTypes.number),
+  // 可以指定一个对象由某一类型的值组成
+  optionalObjectOf: PropTypes.objectOf(PropTypes.number),
+  // 可以指定一个对象由特定的类型值组成
+  optionalObjectWithShape: PropTypes.shape({
+    color: PropTypes.string,
+    fontSize: PropTypes.number
+  })
+};
+
+// 指定 props 的默认值：
+Greeting.defaultProps = {
+  name: 'Stranger'
+};
+```
+
+### state
 
 组件 state 一般代表一个组件 UI 呈现的完整状态集，数据一般为：
 
@@ -28,7 +71,19 @@ state 是组件内部维护的状态，是可变的
 
 #### 修改 state 的一些坑
 
-state 直接修改不会触发 render，正确用法为 setState()
+state 直接修改不会触发 render，正确用法为 **setState()**
+
+setState() 接受一个对象或者函数作为参数
+
+```jsx
+this.setState({
+  name: 'Jinle'
+})
+
+this.setState(() => ({
+  name: 'Jinle'
+}))
+```
 
 调用 setState() 时不会立即更新，setState() 只是把修改状态放入一个队列，等 React 优化真正的执行时机，出于性能考虑，会合并多次 setState()
 
@@ -81,6 +136,16 @@ this.setState((preState, props) => ({
    	owner: {...preState.owner, name: 'Jinle'}
    }))
    ```
+
+### props 和 state 
+
+props 和 state 变化都会触发组件重新渲染（render 函数）
+
+props 和 state 更新都是异步的
+
+props 对组件来说时只读的，通过父组件传值，只能在父组件修改
+
+state 是组件内部维护的状态，是可变的
 
 ### 组件通信
 
@@ -156,25 +221,65 @@ componentDidMount 会更优选：
 
 ```jsx
 class App extends React.Component {
-    constructor(props) {
-        super(props)
-        // 创建
-        this.myRef = React.createRef()
-    }
+  constructor(props) {
+    super(props)
+  }
 
-    handleClick = () => {
-        this.myRef.current.focus()
-    }
+  handleClick = () => {
+    this.input.current.focus()
+  }
 
-    render() {
-        return (
-            <div>
-            	// 绑定
-                <input type="text" ref={this.myRef} />
-                <button onClick={this.handleClick}>点我</button>
-            </div>
-        )
-    }
+  render() {
+    return (
+      <div>
+      	// 绑定
+        <input type="text" ref={(input) => {this.input = input}} />
+        <button onClick={this.handleClick}>点我</button>
+      </div>
+    )
+  }
+}
+```
+
+## Fragments
+
+Fragments 允许将子列表分组，而无需向 DOM 添加额外节点
+
+```jsx
+class TodoList extends Component {
+  render() {
+    return (
+      <React.Fragment>
+        <div><input /><button>提交</button></div>
+        <ul>
+          <li>a</li>
+          <li>b</li>
+        </ul>
+      </React.Fragment>
+    )
+  }
+}
+```
+
+`key` 是唯一可以传递给 `Fragment` 的属性
+
+#### 短语法
+
+可以用 `<> </>` 来声明 Fragments
+
+```jsx
+class TodoList extends Component {
+  render() {
+    return (
+      <>
+        <div><input /><button>提交</button></div>
+        <ul>
+          <li>a</li>
+          <li>b</li>
+        </ul>
+      </>
+    )
+  }
 }
 ```
 
@@ -229,6 +334,9 @@ class MyComponent extends React.Component {
 	render() {
   	return (
   		<button onClick={this.handleClick}>
+      {
+      	// <button onClick={this.handleClick.bind(this)}>
+      }
   	)
 	}
 }
@@ -269,7 +377,7 @@ class MyComponent extends React.Component {
 
 组件使用 ES6 `class` 构造时先调用的方法，一般用于初始化组件的 `state` 以及绑定事件处理方法等。
 
-##### componentWillMount
+##### componentWillMount（即将淘汰）
 
 被挂载到 DOM 前调用（只有一次），比较少用。方法中调用 `this.setState` 不会引起组件渲染。
 
@@ -285,7 +393,7 @@ class MyComponent extends React.Component {
 
 组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的。
 
-##### componentWillReceiveProps(nextProps)
+##### componentWillReceiveProps(nextProps)（即将淘汰）
 
 此方法在 `props` 引起组件更新时被调用，`this.setState` 不会触发该方法。
 
@@ -293,11 +401,13 @@ class MyComponent extends React.Component {
 
 #####  shouldComponentUpdate(nextProps, nextState)
 
-此方法决定组件是否继续执行更新过程。方法返回 `true` 则继续，放回 `false` 则停止更新过程。一般通过比较 `nextProps`、`nextState` 和当前组件的 `props`、`state` 来决定返回值。
+此方法决定组件是否继续执行更新过程。方法返回 `true` 则继续，放回 `false` 则停止更新过程。
+
+一般通过比较 `nextProps`、`nextState` 和当前组件的 `props`、`state` 来决定返回值。
 
 可以减少组件不必要的渲染，从而优化性能。
 
-##### componentWillUpdate(nextProps, nextState)
+##### componentWillUpdate(nextProps, nextState)（即将淘汰）
 
 此方法在 `render` 之前调用，少用。
 
@@ -322,6 +432,50 @@ class MyComponent extends React.Component {
 ##### componentWillUnmount
 
 常用于执行一些清理工作，如清除定时器，清除手动创建的 DOM 元素，以免内存泄漏。
+
+## 虚拟 DOM
+
+虚拟 DOM 就是一个 JS 对象，用它来描述真实 DOM
+
+```jsx
+<div id='abc'><span>hello world</span></div>
+[
+  'div',
+  {
+    id: 'abc'
+  },
+  [
+    'span',
+    {},
+    'hello world'
+  ]
+]
+```
+
+##### 为什么虚拟 DOM 会极大提升性能？
+
+因为虚拟 DOM 减少对真实 DOM 的创建和对比，使用了 JS 对象进行操作
+
+#### 流水解释虚拟 DOM 原理
+
+1. state 数据
+2. jsx 模板
+3. 数据 + 模板 结合，生成虚拟 DOM
+4. 用虚拟 DOM 生成真实 DOM，渲染挂载显示
+5. state 变化
+6. 数据 + 模板 生成新的虚拟 DOM**（极大提升性能）**
+7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
+8. 直接操作 DOM，改变区别内容
+
+#### diff 策略
+
+1. Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
+2. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
+3. 对于同一层级的一组子节点，它们可以通过唯一 id 进行区分。
+
+基于策略一，React 对树的算法进行了简洁明了的优化，即对树进行分层比较，两棵树只会对同一层次的节点进行比较。
+
+React 通过 updateDepth 对 Virtual DOM 树进行层级控制，只会对相同颜色方框内的 DOM 节点进行比较，即同一个父节点下的所有子节点。当发现节点已经不存在，则该节点及其子节点会被完全删除掉，不会用于进一步的比较。这样只需要对树进行一次遍历，便能完成整个 DOM 树的比较。
 
 ## 表单
 
