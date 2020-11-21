@@ -211,6 +211,19 @@ componentDidMount 会更优选：
 
 在组件更新阶段，组件以 props 中某个属性作为请求参数时，可用 componentWillReceiveProps 来与服务端通信，通过判断新老 props 是否相同来判断是否发送请求
 
+### UI组件和容器组件
+
+#### UI组件
+
+- 只负责UI的呈现，没有任何业务逻辑
+- 没有State，参数由Props提供
+- 用无状态（函数）组件会提高性能
+
+#### 容器组件
+
+- 不负责UI的呈现，负责处理业务逻辑
+- 带有内部状态
+
 ## Refs
 
 何时使用 refs：
@@ -369,7 +382,7 @@ class MyComponent extends React.Component {
 
 类组件才有生命周期方法，函数组件没有生命周期方法。
 
-### 挂载阶段
+#### 挂载阶段
 
 此阶段组件创建、初始化，并挂载到 DOM 中。
 
@@ -389,7 +402,7 @@ class MyComponent extends React.Component {
 
 组件被挂载到 DOM 后调用（只有一次），可以获取 DOM 节点，常用于依赖 DOM 节点的操作，向服务器发起请求等。方法中调用 `this.setState` 会引起组件渲染。
 
-### 更新阶段
+#### 更新阶段
 
 组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的。
 
@@ -425,7 +438,7 @@ class MyComponent extends React.Component {
 >
 > 2、`shouldComponentUpdate` 和 `componentWillUpdate` 中不能调用 `this.setState`。
 
-### 卸载阶段
+#### 卸载阶段
 
 组件从 DOM 被卸载的过程
 
@@ -628,3 +641,114 @@ class Modal extends React.Component {
   }
 }
 ```
+
+## Redux
+
+#### 使用
+
+```jsx
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+import TodoList from './TodoList.js';
+import stroe from './store/index';
+
+ReactDOM.render(
+  	// 把store注入进组件
+	<Provider store={store}>
+  	<TodoList />
+  </Provider>,
+  document.getElementById('root')
+)
+```
+
+```jsx
+// todolist.js
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+
+class TodoList extends Component {
+  render() {
+    return (
+      <div>
+        <input
+          value={this.props.inputValue}
+          onChange={this.props.changeInputValue}
+        />
+      </div>
+    )
+  }
+}
+
+// 把状态树中的状态映射进组件的props
+const mapStateToProps = (state) => {
+  return {
+    inputValue: state.inputValue
+  }
+}
+
+// 把Dispatch方法映射为组件中props的方法
+const mapDispatchToProps = (dispatch) => {
+  return {
+    changeInputValue(e) {
+      const action = {
+        type: 'change_input_value',
+        value: e.target.value
+      }
+      dispatch(action);
+    }
+  }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(TodoList);
+```
+
+```jsx
+// store.js
+import { createStore } from 'redux';
+import reducer from './reducer';
+
+const store = createStore(
+  reducer,
+  // chrome Redux
+  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+
+export default store;
+```
+
+```jsx
+// reducer.js
+const defaultState = {
+  inputValue: ''
+};
+
+export default (state = defaultState, action) => {
+  if(action.type === 'change_input_value') {
+    const newState = JSON.parse(JSON.stringify(state));
+    newState.inputValue = action.value;
+    return newState;
+  }
+  return state;
+}
+```
+
+`createStore(reducer)`：创建 store
+
+`store.getState()`：获取 store 的值
+
+`store.dispatch(action)`：分发 action。这是触发 state 变化的惟一途径。
+
+`store.subscribe(listener)`：添加一个变化监听器。每当 dispatch action 的时候就会执行
+
+#### 工作流
+
+React Components ==> Action Creators ==> Store ==> Reducers ==> Store ==> React Components
+
+1. React Components 传递给 Action Creators 要获取的数据（Action Creators 就是一个描述“发生了什么”的普通对象）
+2. Action Creators 创建一个指令 dispatch 告诉 store 要获取的数据
+3. store 询问 Reducers 如何获取数据
+4. Reducers 告诉 store 如何获取数据
+5. store 获取数据后返回给 React Components
+
