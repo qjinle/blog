@@ -752,3 +752,16 @@ React Components ==> Action Creators ==> Store ==> Reducers ==> Store ==> React 
 4. Reducers 告诉 store 如何获取数据
 5. store 获取数据后返回给 React Components
 
+#### 拆分 reducer
+
+使用 combineReducers，合并 reducer ，方便代码维护
+
+```js
+import { combineReducers } from 'redux';
+import headerReducer from '../common/header/store/reducer';
+
+export default combineReducers({
+  header: headerReducer
+})
+```
+
