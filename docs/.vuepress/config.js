@@ -8,7 +8,8 @@ module.exports = {
     ['meta', { name: 'keywords', content: 'Jinle，博客' }]
   ],
   markdown: {
-    extractHeaders: ['h2', 'h3', 'h4']
+    lineNumbers: true, // 显示代码块行号
+    extractHeaders: ['h2', 'h3', 'h4'] // 侧边栏显示标题级别
   },
   plugins: ['@vuepress/nprogress', '@vuepress/back-to-top'],
   themeConfig: {
@@ -26,6 +27,7 @@ module.exports = {
         'React',
         'Node',
         'Koa',
+        '微信小程序',
         '浏览器相关',
         '前端工程化',
         '计算机网络',
