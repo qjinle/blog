@@ -3,11 +3,11 @@ title: Vue
 lang: zh-CN
 ---
 
-## 基本使用
+## 基础
 
-#### 实例
+### 实例
 
-##### 属性
+#### 属性
 
 `vm.$data`：Vue 实例观察的数据对象。等于 `vm.data`
 
@@ -35,7 +35,7 @@ lang: zh-CN
 
 `vm.$listeners`：包含了父作用域中的 (不含 `.native` 修饰器的) `v-on` 事件监听器。
 
-##### 方法
+#### 方法
 
 `vm.$watch(expOrFn, callback, [options])`：观察 Vue 实例上的一个表达式或者一个函数计算结果的变化。回调函数得到的参数为新值和旧值。等同于 `watch` 监听器。`vm.$watch` 返回一个取消观察函数，用来停止触发回调。
 
@@ -105,23 +105,13 @@ export default {
 
 `vm.$destroy()`：完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。触发 `beforeDestroy` 和 `destroyed` 的钩子。
 
-#### 组件通讯
-
-##### 父子组件通信
-
-父组件通过 `props` 传递数据给子组件。
-
-父组件对子组件的自定义事件使用 `v-on:eventName=doSomething` 进行监听，当子组件内部触发了该自定义事件时（使用 `$emit('eventName')`），父组件执行 `doSomething`，从而实现子组件向父组件的通信。
-
-##### 非父子组件通信
-
-同个 vue 实例下使用 `vm.$on` 鉴定事件，`vm.$emit` 触发事件
-
-#### 生命周期
+### 生命周期
 
 从开始创建、初始化数据、编译模板、挂载 DOM、渲染→更新→渲染、销毁等一系列过程，我们称这是 Vue 的生命周期。总共分为三个阶段：初始化、运行中、销毁。
 
-##### 流水线解释
+#### 流水线解释
+
+##### 初始化
 
 1. 先 new Vue 一个实例
 2. 初始化事件和生命周期
@@ -133,18 +123,18 @@ export default {
 8. 将渲染好的 DOM 挂载到实例的 $el 上
 9. 执行 mounted 函数，表示实例初始化完毕
 
-**运行中**
+##### 运行中
 
 1. 实例的数据更改后，执行 beforeUpadte 函数
 2. 虚拟 DOM 机制根据最新的 data 重新构建 DOM 与上一次的虚拟 DOM 树利用 diff 算法进行对比之后重新渲染
 3. 执行 updated 函数
 
-**销毁**
+##### 销毁
 
 1. 调用 $destroy 方法后，执行 beforeDestroy 函数，此时 data、方法都还可用
 2. 执行 destroyed 函数
 
-##### 钩子函数
+#### 钩子函数
 
 - beforeCreate：此时数据还没挂载，**不要修改 data 数据**，无法访问到数据和 DOM，一般不做操作
 - created：data 数据挂载完成，修改数据不会触发其他钩子，可用于 ajax 请求初始化数据
@@ -155,7 +145,181 @@ export default {
 - beforeDestory：一般在这里做一些善后工作，例如清除计时器、清除非指令绑定的事件等
 - destoryed
 
-#### 自定义 v-model
+### data
+
+组件的 `data` 选项是一个函数。Vue 在创建新组件实例的过程中调用此函数。它应该返回一个对象，然后 Vue 会通过响应性系统将其包裹起来，并以 `$data` 的形式存储在组件实例中。
+
+直接将不包含在 `data` 中的新 property 添加到组件实例是可行的。但由于该 property 不在背后的响应式 `$data` 对象内，所以 **Vue 的响应性系统** 不会自动跟踪它。
+
+```js
+const app = Vue.createApp({
+  data() {
+    return { count: 4 }
+  }
+})
+
+const vm = app.mount('#app')
+
+console.log(vm.$data.count) // => 4
+console.log(vm.count)       // => 4
+
+// 修改 vm.count 的值也会更新 $data.count
+vm.count = 5
+console.log(vm.$data.count) // => 5
+
+// 反之亦然
+vm.$data.count = 6
+console.log(vm.count) // => 6
+```
+
+#### 为何 data 必须是一个函数？
+
+定义的 Vue 文件是一个类，每次使用相当于对类实例化，`data` 数据以函数返回值形式定义，这样每复用一次组件，就会返回一份新的 `data`，类似于给每个组件实例创建一个私有的数据空间，让各个组件实例维护各自的数据，类似形成闭包。
+
+而单纯的写成对象形式，就使得所有组件实例共用了一份 `data`，就会造成一个变了全都会变的结果。
+
+### 计算属性和侦听器
+
+#### computed
+
+**计算属性** 用于处理任何包含响应式数据的复杂逻辑，简化模板，可以提高性能。
+
+计算属性是基于响应式数据的反应依赖关系缓存的，计算属性只在相关响应式依赖发生改变时才会重新求值。
+
+计算属性也可以提供 setter：
+
+```js
+computed: {
+  fullName: {
+    // getter
+    get() {
+      return this.firstName + ' ' + this.lastName
+    },
+    // setter
+    set(newValue) {
+      const names = newValue.split(' ')
+      this.firstName = names[0]
+      this.lastName = names[names.length - 1]
+    }
+  }
+}
+```
+
+#### watch
+
+**侦听器** 用于需要在数据变化时执行异步或开销较大的操作
+
+除了 watch 选项之外，你还可以使用命令式的 `vm.$watch`
+
+```js
+ watch: {
+   value(newVal, oldVal) {
+     if (newVal !== oldVal) {
+       // do something ...
+     }
+   }
+ }
+```
+
+### 条件渲染
+
+#### v-if
+
+`v-if` 指令用于条件性地渲染一块内容。这块内容只会在指令的表达式返回 truthy 值的时候被渲染。
+
+```html
+<div v-if="type === 'A'">
+  A
+</div>
+<div v-else-if="type === 'B'">
+  B
+</div>
+<div v-else-if="type === 'C'">
+  C
+</div>
+<div v-else>
+  Not A/B/C
+</div>
+```
+
+#### v-show
+
+另一个用于根据条件展示元素的选项是 `v-show` 指令。用法大致一样：
+
+```html
+<h1 v-show="ok">Hello!</h1>
+```
+
+不同的是带有 `v-show` 的元素始终会被渲染并保留在 DOM 中。`v-show` 只是简单地切换元素的 CSS property `display`。
+
+> 注意：`v-show` 不支持 `<template>` 元素，也不支持 `v-else`
+
+#### v-if and v-show
+
+`v-if` 有更高的切换开销，而 `v-show` 有更高的初始渲染开销
+
+如果需要非常频繁地切换，则使用 `v-show` 较好
+
+如果在运行时条件很少改变，则使用 `v-if` 较好
+
+### 列表渲染
+
+#### v-for
+
+`v-for` 指令基于一个数组来渲染一个列表。`v-for` 指令需要使用 `item in items` 形式的特殊语法，其中 `items` 是源数据数组，而 `item` 则是被迭代的数组元素的别名。
+
+```html
+<div v-for="(item, index) in items">
+  {{ parentMessage }} - {{ index }} - {{ item.message }}
+</div>
+```
+
+```js
+data() {
+  return {
+    parentMessage: 'Parent',
+    items: [{ message: 'Foo' }, { message: 'Bar' }]
+  }
+}
+```
+
+`v-for` 也可以遍历对象
+
+```html
+<div v-for="(value, key, index) in myObject">
+  {{ index }}. {{ key }}: {{ value }}
+</div>
+```
+
+> 注意：使用 `v-for` 时最好给定一个 `key` 值，`diff` 算法中通过 `tag` 和 `key` 来判断是否为 `sameNode`，以此减少渲染次数，提升渲染性能
+
+### 事件处理
+
+我们可以使用 `v-on` 指令 (通常缩写为 `@` 符号) 来监听 DOM 事件，用法为 `v-on:click="methodName"` 或使用快捷方式 `@click="methodName"`。
+
+#### 事件修饰符
+
+- `.stop`：等同于 JavaScript 中的 `event.stopPropagation()`，防止事件冒泡
+- `.prevent`：等同于 JavaScript 中的 `event.preventDefault()`，防止执行预设的行为（如果事件可取消，则取消该事件，而不停止事件的进一步传播）
+- `.capture`：与事件冒泡的方向相反，事件捕获由外到内
+- `.self`：只会触发自己范围内的事件，不包含子元素
+- `.once`：只会触发一次
+- `.passive`：防止不执行预设行为（触发默认行为）**（能够极大提升移动端性能）**
+
+> 注意：使用修饰符时，顺序很重要；相应的代码会以同样的顺序产生
+>
+> 注意：不要把 `.passive` 和 `.prevent` 一起使用，因为 `.prevent` 将会被忽略
+
+#### 按键修饰符
+
+在监听键盘事件时，我们经常需要检查详细的按键。Vue 允许为 `v-on` 或者 `@` 在监听键盘事件时添加按键修饰符：
+
+```html
+<!-- 只有在 `key` 是 `Enter` 时调用 `vm.submit()` -->
+<input @keyup.enter="submit" />
+```
+
+### 自定义 v-model
 
 ```vue
 <template>
@@ -187,9 +351,7 @@ export default {
 </script>
 ```
 
-#### slot
-
-#### 异步组件
+### 异步组件
 
 `defineAsyncComponent`
 
@@ -208,7 +370,7 @@ const AsyncComp = Vue.defineAsyncComponent(
 app.component('async-example', AsyncComp)
 ```
 
-#### keep-alive 缓存组件
+### keep-alive 缓存组件
 
 ```
 缓存组件，不需要重复渲染
@@ -218,7 +380,7 @@ app.component('async-example', AsyncComp)
 优化性能
 ```
 
-#### mixin
+### mixin
 
 多个组件有相同的逻辑，抽离出来
 
@@ -243,7 +405,7 @@ const app = Vue.createApp({
 app.mount('#mixins-basic') // => "hello from mixin!"
 ```
 
-#### 自定义指令
+### 自定义指令
 
 ```js
 const app = Vue.createApp({})
@@ -274,15 +436,29 @@ app.directive('my-directive', () => {
 const myDirective = app.directive('my-directive')
 ```
 
+## 组件
+
+### 组件通讯
+
+#### 父子组件通信
+
+父组件通过 `props` 传递数据给子组件。
+
+父组件对子组件的自定义事件使用 `v-on:eventName=doSomething` 进行监听，当子组件内部触发了该自定义事件时（使用 `$emit('eventName')`），父组件执行 `doSomething`，从而实现子组件向父组件的通信。
+
+#### 非父子组件通信
+
+同个 vue 实例下使用 `vm.$on` 鉴定事件，`vm.$emit` 触发事件
+
 ## 原理
 
-#### MVVM 模式 - 数据驱动视图
+### MVVM 模式 - 数据驱动视图
 
-#### 双向绑定原理
+### 双向绑定原理
 
 vue 数据双向绑定是通过数据劫持结合发布者-订阅者模式的方式来实现的。通过 `Object.defineProperty()` 来劫持各个属性的 `setter`，`getter`，再数据变动时发布消息给订阅者，触发响应的监听回调。
 
-##### 实现过程
+#### 实现过程
 
 1、实现一个监听器 Observer，用来劫持并监听所有属性，如果有变动的，就通知订阅者。
 
@@ -290,7 +466,7 @@ vue 数据双向绑定是通过数据劫持结合发布者-订阅者模式的方
 
 3、实现一个解析器 Compile，可以扫描和解析每个节点的相关指令，并根据初始化模板数据以及初始化相应的订阅器。
 
-##### 实现 Observer
+#### 实现 Observer
 
 ```js
 function defineReactive(data, key, val) {
@@ -339,7 +515,7 @@ Dep.prototype = {
 Dep.target = null;
 ```
 
-##### 实现 Watcher
+#### 实现 Watcher
 
 ```js
 class Watcher {
@@ -369,7 +545,7 @@ class Watcher {
 }
 ```
 
-##### 实现 Compile
+#### 实现 Compile
 
 ```js
 class Compile {
@@ -439,7 +615,7 @@ class Compile {
 }
 ```
 
-##### 实现一个入口文件
+#### 实现一个入口文件
 
 ```js
 class SelfVue {
@@ -481,7 +657,7 @@ class SelfVue {
 - 无法监听新增属性/删除属性（Vue.set Vue.delete）
 - 无法监听原生数组，需要特殊处理
 
-#### 虚拟DOM
+### 虚拟DOM
 
 用 JS 模拟 DOM 结构
 
@@ -526,27 +702,11 @@ class SelfVue {
 - tag 不相同，则直接删掉重建，不再深度比较
 - tag 和 key，两者都相同，则认为是相同结点，不再深度比较
 
-#### 编译模板
+### 编译模板
 
 模板到 render 函数，再到 vnode，再到渲染和更新
 
 ## 面试题
-
-#### 1. v-show 和 v-if 的区别
-
-```
-v-show 通过 css 的 display 控制，频繁切换时使用
-
-v-if 通过 vue 本身组件控制动态创建和销毁，切换一次后不再频繁切换时使用
-```
-
-#### 2. 为何 v-for 要用 key
-
-```
-diff 算法中通过 tag 和 key 来判断是否为 sameNode，减少渲染次数，提升渲染性能
-```
-
-#### 3. 描述 Vue 组件生命周期（有父子组件的情况）
 
 #### 4. Vue 组件如何通讯
 
@@ -583,22 +743,6 @@ vuex通信
 input 元素的 value = this.name
 绑定 @input 事件 this.name = $event.target.value
 data 更新触发 re-render
-```
-
-#### 7. computed 有何特点
-
-```
-缓存，data 不变不会重新计算
-可以提高性能
-```
-
-#### 8. 为何 data 必须是一个函数
-
-```
-定义的 vue 文件是一个类，每次使用相当于对类实例化，data 数据以函数返回值形式定义，这样每复用一次组件，就会返回
-一份新的 data，类似于给每个组件实例创建一个私有的数据空间，让各个组件实例维护各自的数据，类似形成闭包。
-
-而单纯的写成对象形式，就使得所有组件实例共用了一份 data，就会造成一个变了全都会变的结果。
 ```
 
 #### 9. ajax 应该放在哪个生命周期
