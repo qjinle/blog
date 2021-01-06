@@ -319,6 +319,28 @@ data() {
 <input @keyup.enter="submit" />
 ```
 
+#### 系统修饰符
+
+仅在按下相应按键时才触发鼠标或键盘事件的监听器。
+
+- `.ctrl`
+- `.alt`
+- `.shift`
+- `.meta`
+
+`.exact` 修饰符允许你控制由精确的系统修饰符组合触发的事件。
+
+```html
+<!-- 即使 Alt 或 Shift 被一同按下时也会触发 -->
+<button @click.ctrl="onClick">A</button>
+
+<!-- 有且只有 Ctrl 被按下的时候才触发 -->
+<button @click.ctrl.exact="onCtrlClick">A</button>
+
+<!-- 没有任何系统修饰符被按下的时候才触发 -->
+<button @click.exact="onClick">A</button>
+```
+
 ### 自定义 v-model
 
 ```vue
@@ -708,18 +730,6 @@ class SelfVue {
 
 ## 面试题
 
-#### 4. Vue 组件如何通讯
-
-```
-父子组件通信
-父向子用 props，子向父用 $emit
-
-自定义组件通信
-event.$on event.$off event.$emit
-
-vuex通信
-```
-
 #### 5. 描述组件渲染和更新的过程
 
 ```
@@ -735,24 +745,6 @@ vuex通信
   
 - 异步渲染
   - $nextTick
-```
-
-#### 6. 双向数据绑定 v-model 的实现原理
-
-```
-input 元素的 value = this.name
-绑定 @input 事件 this.name = $event.target.value
-data 更新触发 re-render
-```
-
-#### 9. ajax 应该放在哪个生命周期
-
-```
-mounted
-
-js 是单线程的，ajax 异步获取数据，数据没渲染前需要排队
-
-放在 mounted 之前没有用，只会让逻辑混乱
 ```
 
 #### 10. 何时需要使用 beforeDsetory
