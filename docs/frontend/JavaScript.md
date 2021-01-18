@@ -5,11 +5,11 @@ lang: zh-CN
 
 ## 变量类型
 
-#### 值类型和引用类型（栈和堆）
+### 值类型和引用类型
 
-​	值类型：number、string、boolean、undefined
+值类型：number、string、boolean、undefined
 
-​	引用类型：Object、Array、Function、null
+引用类型：Object、Array、Function、null
 
 ```javascript
 let a = 100;
@@ -25,19 +25,19 @@ a.age= 21;
 console.log(b.age); // 21 (b.age随a.age的改变而改变)
 ```
 
-​	值类型的占用空间固定，保存再栈中，保存与复制的是值本身
+值类型的占用空间固定，保存再栈中，保存与复制的是值本身
 
-​	引用类型的占用空间不固定，保存在堆中，保存与复制的是指向对象的一个指针
+引用类型的占用空间不固定，保存在堆中，保存与复制的是指向对象的一个指针
 
-#### 类型判断
+### 类型判断
 
-`typeof`：识别所以值类型 ( undefined string number boolean symbol )、识别函数 ( function ) 、判断是否是引用类型（无法细分）
+`typeof`：识别所以值类型（undefined、string、number、boolean、symbol）、识别函数（function）、判断是否是引用类型（无法细分）
 
 `instanceof`：判断数组、对象、正值表达式，返回布尔值
 
 `Object.prototype.toString.call`：返回 `[object, xxx]`，xxx 为目标类型
 
-#### 类型转换
+### 类型转换
 
 - 字符串拼接问题
 
@@ -57,23 +57,21 @@ console.log(b.age); // 21 (b.age随a.age的改变而改变)
 !!false === false;
 ```
 
-#### var let const
+### 定义变量
 
 var 是 ES5 语法，let const 是 ES6 的语法；var有变量提升
 
 let const 有块级作用域
 
-#### 强制/隐式类型转换
+### 类型转换
 
 强制：`parseInt`、`parseFloat`、`toString`
 
 隐式：if、逻辑运算、==、+ 拼接字符串
 
-
-
 ## 数组
 
-#### 判断数组
+### 判断数组
 
 ```js
 var arr = []
@@ -89,7 +87,7 @@ Object.prototype.toString.call(arr) === "[object Array]"
 Array.isArray(arr)
 ```
 
-#### 纯函数
+### 纯函数
 
 纯函数：1. 不改变源数组（没有副作用）；2. 返回一个数组
 
@@ -101,27 +99,13 @@ Array.isArray(arr)
 
 `slice(start,end)`：从已有的数组中返回选定的元素
 
-####  slice 和 splice
+###  数组截取
 
 `slice(start,end)`：数组从 start 开始截取到 end（如果未定义 end 则到结束），返回新数组为被截取数组，不改变原数组
 
 `splice(index,howmany,item1,.....,itemX)`：可删除从 index 处开始的零个或多个元素，并且用参数列表中声明的一个或多个值来替换那些被删除的元素，如果删除了元素，返回含有被删除元素的数组，改变原数组
 
-#### [10,20,30].map(parseInt) 返回的结果
-
-```js
-const res = [10, 20, 30].map(parseInt)
-console.log(res) //[10, NAN, NAN]
-
-// 拆解
-[10, 20, 30].map((num, index) => {
-    return parseInt(num, index)
-})
-```
-
-`parseInt(string,radix)`：radix 代表该进位系统的数字，比如 10 代表十进制
-
-#### 数组拍平
+### 数组拍平
 
 ```js
 function flat(arr) {
@@ -135,7 +119,7 @@ function flat(arr) {
 }
 ```
 
-#### 数组去重
+### 数组去重
 
 传统方式：效率低
 
@@ -166,13 +150,7 @@ function unique(arr) {
 
 函数表达式：先定义再赋值 `const fn = function() {}`
 
-#### split() 和 join()
-
-`split()`：用于把一个字符串分割成字符串数组，需填入指定分隔符
-
-`join()`：用于把数组中的所有元素放入一个字符串，元素是通过指定的分隔符进行分隔的
-
-#### 手写深拷贝
+### 手写深拷贝
 
 ```javascript
 function deepClone(obj = {}) {
@@ -201,7 +179,7 @@ function deepClone(obj = {}) {
 };
 ```
 
-#### 手写 bind 函数
+### 手写 bind 函数
 
 ```javascript
 // 模拟 bind
@@ -222,7 +200,7 @@ Function.prototype.bind1 = function () {
 }
 ```
 
-#### 手写深度比较
+### 手写深度比较
 
 ```js
 // 全相等（深度）
@@ -260,7 +238,7 @@ function isEqual(obj1, obj2) {
 
 ## 事件
 
-#### 通用事件监听函数
+### 通用事件监听函数
 
 ```js
 // 通用的事件绑定函数
@@ -284,11 +262,11 @@ function bindEvent(elem, type, selector, fn) {
 }
 ```
 
-#### 事件冒泡
+### 事件冒泡
 
 `event.stopProgagation`：阻止冒泡
 
-#### 事件代理
+### 事件代理
 
 代码简洁、减少浏览器内存占用、但是不要滥用
 
@@ -310,7 +288,7 @@ div1.addEventListener('click', event => {
 
 `__proto__`：隐式原型
 
-#### new Object() 和 Object.crate() 
+### new Object() 和 Object.crate() 
 
 {} 等同于 new Object()，原型 Object.prototype
 
@@ -320,7 +298,7 @@ Object.crate({...}) 可指定原型，创建的是空对象
 
 ## 作用域和闭包
 
-#### 闭包
+### 闭包
 
 两种表现形式
 
@@ -352,7 +330,7 @@ print(fn) // 100
 
 影响：变量会常驻内存，得不到释放，内存泄露
 
-#### this指向
+### this指向
 
 this取值是在函数执行的时候确定的，不是在函数定义是确定的
 
@@ -370,9 +348,9 @@ const func = User.getCount
 console.log(func()) // undefined
 ```
 
-#### 闭包实际应用
+### 闭包实际应用
 
-​	隐藏数据
+隐藏数据
 
 ```javascript
 4// 闭包隐藏数据，只提供 API
@@ -395,7 +373,7 @@ function createCache() {
 
 异步基于 JS 单线程语言，不会阻塞代码执行；同步会阻塞代码执行。
 
-#### 手写 Promise 加载图片
+### 手写 Promise 加载图片
 
 ```javascript
 function loadImg(src) {
@@ -414,7 +392,7 @@ function loadImg(src) {
 }
 ```
 
-#### event loop 运行机制
+### event loop 运行机制
 
 event loop执行过程：
 
@@ -426,7 +404,7 @@ event loop执行过程：
 6. 轮询查找 Callback Queue，如有则移动到 Call Stack执行
 7. .然后继续轮询查找
 
-#### Promise 状态
+### Promise 状态
 
 1. pending 状态：不会触发 then 或 catch
 2. resolved 状态：会触发后续的 then 回调函数 
@@ -436,7 +414,7 @@ event loop执行过程：
 
 **catch() 不抛出错误，会返回 resolved 状态的 promise，catch() 抛出错误，会返回 rejected 状态的 promise**
 
-#### async/await
+### async/await
 
 1. 执行 async 函数，返回的是 Promise 对象
 2. await 相当于 Promise 的 then
@@ -444,7 +422,7 @@ event loop执行过程：
 
 **await 后面的代码相当于放在 callback 回调中执行，要等同步代码执行完才执行**
 
-#### for...of 
+### for...of 
 
 ```js
 // 定时算乘法
@@ -467,13 +445,13 @@ async function test2 () {
 test2()
 ```
 
-#### 宏任务和微任务
+### 宏任务和微任务
 
 - 宏任务：setTimeout setInterval ajax DOM 事件，DOM 渲染后再触发
 - 微任务：Promise async/await，DOM 渲染前会触发
 - 微任务比宏任务执行的更早
 
-#### 执行顺序
+### 执行顺序
 
 ```js
 async function async1 () {
@@ -515,7 +493,7 @@ console.log('script end') // 5
 
 ## AJAX
 
-#### 手写 ajax
+### 手写 ajax
 
 ```js
 function ajax(url) {
@@ -536,7 +514,7 @@ function ajax(url) {
 }
 ```
 
-#### get 和 post 的区别
+### get 和 post 的区别
 
 get 一般用于查询操作，post 一般用于用户提交操作
 
@@ -546,7 +524,7 @@ post 易于防止 CSRF 攻击
 
 ## 异常
 
-#### 如何捕获异常
+### 如何捕获异常
 
 手动捕获：
 
