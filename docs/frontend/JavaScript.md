@@ -298,37 +298,43 @@ Object.crate({...}) 可指定原型，创建的是空对象
 
 ## 作用域和闭包
 
-### 闭包
-
-两种表现形式
-
-```javascript
-// 函数作为返回值
-function create() {
-    const a = 100
-    return function() {
-        console.log(a)
-    }
-}
-const fn = create()
-const a = 200
-fn() // 100
-
-// 函数作为参数被传递
-function print(fn) {
-    const a = 200
-    fn()
-}
-const a = 100
-function fn() {
-    console.log(a)
-}
-print(fn) // 100
-```
-
 **所有的自由变量的查找，是在函数定义的地方，向上级作用域查找，不是在执行的地方！！！**
 
+### 闭包
+
+在 JavaScript 中，根据词法作用域的规则，内部函数总是可以访问其外部函数中声明的变量，当通过调用一个外部函数返回一个内部函数后，即使该外部函数已经执行结束了，但是内部函数引用外部函数的变量依然保存在内存中，我们就把这些变量的集合称为闭包。比如外部函数是 foo，那么这些变量的集合就称为 foo 函数的闭包。
+
+```javascript
+function foo() {
+    var myName = " 极客时间 "
+    let test1 = 1
+    const test2 = 2
+    var innerBar = {
+        getName:function(){
+            console.log(test1)
+            return myName
+        },
+        setName:function(newName){
+            myName = newName
+        }
+    }
+    return innerBar
+}
+var bar = foo()
+bar.setName(" 极客邦 ")
+bar.getName()
+console.log(bar.getName())
+```
+
 影响：变量会常驻内存，得不到释放，内存泄露
+
+#### 闭包回收
+
+如果引用闭包的函数是一个全局变量，那么闭包会一直存在直到页面关闭。（**内存泄漏**）
+
+如果引用闭包的函数是个局部变量，等函数销毁后，在下次 JavaScript 引擎执行垃圾回收时，判断闭包这块内容如果已经不再被使用了，那么 JavaScript 引擎的垃圾回收器就会回收这块内存。
+
+**如果该闭包会一直使用，那么它可以作为全局变量而存在；但如果使用频率不高，而且占用内存又比较大的话，那就尽量让它成为一个局部变量**。
 
 ### this指向
 
