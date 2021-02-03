@@ -25,6 +25,7 @@ module.exports = {
         'JavaScript',
         'Vue',
         'React',
+        'TypeScript',
         'Node',
         'Koa',
         '微信小程序',
