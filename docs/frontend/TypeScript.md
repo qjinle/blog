@@ -103,6 +103,54 @@ x = ['hello', 10]; // OK
 x = [10, 'hello']; // Error
 ```
 
+### 类型别名
+
+可用 `type` 来命名一个类型
+
+```ts
+type NameResolver = () => string
+type NameOrResolver = string | NameResolver
+function getName(n: NameOrResolver): string {
+  if (typeof n === 'string') {
+    return n
+  } else {
+    return n()
+  }
+}
+```
+
+### 类型断言
+
+通过类型断言这种方式可以告诉编译器，“相信我，我知道自己在干什么”。 
+
+类型断言好比其它语言里的类型转换，但是不进行特殊的数据检查和解构。 它没有运行时的影响，只是在编译阶段起作用
+
+类型断言有两种形式，一种是用 `as` 语法
+
+```ts
+function getLength(input: string | number) : number {
+  const str = input as String
+  if (str.length) {
+    return str.length
+  } else {
+    const number = input as Number
+    return number.toString().length
+  }
+}
+```
+
+另一种是 `<>` 语法
+
+```ts
+function getLength(input: string | number) : number {
+  if((<string>input).length) {
+    return (<string>input).length
+  } else {
+    return input.toString().length
+  }
+}
+```
+
 ## 接口
 
 TypeScript 的核心原则之一是对值所具有的结构进行类型检查
@@ -269,5 +317,138 @@ function add(x: number, y: number, z: number = 10): number {
 	return x + y + z
 }
 let result = add(2, 3, 5)
+```
+
+## 枚举
+
+使用枚举我们可以定义一些带名字的常量
+
+使用枚举可以清晰地表达意图或创建一组有区别的用例
+
+TypeScript 支持数字的和基于字符串的枚举
+
+### 数字枚举
+
+当不指定值时，默认从 0 开始递增，当然也可以指定值
+
+```ts
+enum Direction {
+    Up, // 0
+    Down, // 1
+    Left, // ...
+    Right
+}
+```
+
+### 字符串枚举
+
+在一个字符串枚举里，每个成员都必须用字符串字面量，或另外一个字符串枚举成员进行初始化
+
+```ts
+enum Direction {
+    Up = "UP",
+    Down = "DOWN",
+    Left = "LEFT",
+    Right = "RIGHT",
+}
+```
+
+## 泛型
+
+泛型可以用来创建可重用的组件，一个组件可以支持多种类型的数据
+
+```ts
+function echo<T>(arg: T): T {
+  return arg
+}
+
+const result = echo(123) // number
+const result = echo('str') // string
+const result = echo(true) // boolean
+```
+
+我们给 identity 添加了类型变量 `T`。`T` 帮助我们捕获用户传入的类型（比如：`number`），之后我们就可以使用这个类型，之后我们再次使用了 `T` 当做返回值类型
+
+**不同于使用 `any`，泛型不会丢失信息**
+
+### 泛型约束
+
+想要限制函数去处理任意带有`.length` 属性的所有类型。 只要传入的类型有这个属性，我们就允许，就是说至少包含这一属性。 为此，我们需要列出对于 T 的约束要求
+
+```ts
+function loggingIdentity<T>(arg: T): T {
+    console.log(arg.length);  // Error: T doesn't have .length
+    return arg;
+}
+```
+
+**定义一个接口来描述约束条件**
+
+1. 创建一个包含 `.length` 属性的接口
+2. 使用这个接口和 `extends` 关键字来实现约束
+
+```ts
+interface IWithLength {
+  length: number
+}
+
+function echoWithLength<T extends IWithLength>(arg: T): T {
+  console.log(arg.length)
+  return arg
+}
+
+const str = echoWithLength('str')
+const obj = echoWithLength({ length: 10, width: 10})
+const arr = echoWithLength([1, 2, 3])
+const num = echoWithLength(123) // error
+```
+
+### 泛型类
+
+泛型类使用 `<>` 括起泛型类型，跟在类名后面
+
+```ts
+class Queue<T> {
+  private data = [];
+  push(item: T) {
+    return this.data.push(item)
+  }
+  pop(): T {
+    return this.data.shift()
+  }
+}
+
+const queue = new Queue<number>()
+queue.push(1)
+console.log(queue.pop().toFixed())
+
+const queue2 = new Queue<string>()
+queue2.push('str')
+console.log(queue2.pop().length)
+```
+
+### 泛型接口
+
+把泛型参数当作整个接口的一个参数，这样我们就能清楚的知道使用的具体是哪个泛型类型
+
+```ts
+interface KeyPair<T, U> {
+  key: T;
+  value: U;
+}
+let kp1: KeyPair<number, string> = { key: 123, value: "str" }
+let kp2: KeyPair<string, number> = { key: 'test', value: 123 }
+
+interface IPlus<T> {
+  (a: T, b: T) : T
+}
+function plus(a: number, b: number): number {
+  return a + b;
+}
+function connect(a: string, b: string): string {
+  return a + b
+}
+const a: IPlus<number> = plus
+const b: IPlus<string> = connect
 ```
 

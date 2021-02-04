@@ -161,7 +161,35 @@ state 是组件内部维护的状态，是可变的
 
 ##### context
 
-Context 设计目的是为了共享那些对于一个组件树而言是**全局**的数据，例如当前认证的用户、主题或首选语言。可以避免通过中间组件传递 props。
+Context 设计目的是为了共享那些对于一个组件树而言是**全局**的数据，例如当前认证的用户、主题或首选语言。可以避免通过中间组件传递 props
+
+### 组件和服务端通信
+
+一般在 componentWillMount 和 componentDidMount 中发送 ajax 请求通信
+
+componentDidMount 会更优选：
+
+1. componentDidMount 保证获取数据时组件以及处于挂载状态，操作 DOM 比较安全
+2. 组件服务端渲染时，componentDidMount 调用一次，componentWillMount 调用两次，可以避免多余的数据请求
+
+在组件更新阶段，组件以 props 中某个属性作为请求参数时，可用 componentWillReceiveProps 来与服务端通信，通过判断新老 props 是否相同来判断是否发送请求
+
+### UI组件和容器组件
+
+#### UI组件
+
+- 只负责UI的呈现，没有任何业务逻辑
+- 没有State，参数由Props提供
+- 用无状态（函数）组件会提高性能
+
+#### 容器组件
+
+- 不负责UI的呈现，负责处理业务逻辑
+- 带有内部状态
+
+## Context
+
+Context 提供了一种在组件之间共享此类值的方式，而不必显式地通过组件树的逐层传递 props
 
 ```jsx
 // Context 可以让我们无须明确地传遍每一个组件，就能将值深入传递进组件树。
@@ -200,29 +228,49 @@ class ThemedButton extends React.Component {
 }
 ```
 
-### 组件和服务端通信
+> Context 主要应用场景在于很多不同层级的组件需要访问同样一些的数据。请谨慎使用，因为这**会使得组件的复用性变差**。
 
-一般在 componentWillMount 和 componentDidMount 中发送 ajax 请求通信
+### React.createContext
 
-componentDidMount 会更优选：
+```jsx
+const MyContext = React.createContext(defaultValue);
+```
 
-1. componentDidMount 保证获取数据时组件以及处于挂载状态，操作 DOM 比较安全
-2. 组件服务端渲染时，componentDidMount 调用一次，componentWillMount 调用两次，可以避免多余的数据请求
+**创建一个 Context 对象**，当 React 渲染一个订阅了这个 Context 对象的组件，这个组件会从组件树中离自身最近的那个匹配的 `Provider` 中读取到当前的 context 值
 
-在组件更新阶段，组件以 props 中某个属性作为请求参数时，可用 componentWillReceiveProps 来与服务端通信，通过判断新老 props 是否相同来判断是否发送请求
+当组件所处的树中没有匹配到 Provider 时，其 `defaultValue` 参数才会生效
 
-### UI组件和容器组件
+### Context.Provider
 
-#### UI组件
+```jsx
+<MyContext.Provider value={/* 某个值 */}>
+```
 
-- 只负责UI的呈现，没有任何业务逻辑
-- 没有State，参数由Props提供
-- 用无状态（函数）组件会提高性能
+Provider 接收一个 `value` 属性，传递给消费组件
 
-#### 容器组件
+当 Provider 的 `value` 值发生变化时，它内部的所有消费组件都会重新渲染
 
-- 不负责UI的呈现，负责处理业务逻辑
-- 带有内部状态
+### Context.Consumer
+
+```jsx
+import {ThemeContext} from './theme-context';
+function ThemeTogglerButton() {
+  // Theme Toggler 按钮不仅仅只获取 theme 值，它也从 context 中获取到一个 toggleTheme 函数
+  return (
+    <ThemeContext.Consumer>
+      {({theme, toggleTheme}) => (
+        <button onClick={toggleTheme} style={{backgroundColor: theme.background}}>
+					Toggle Theme
+        </button>
+      )}
+    </ThemeContext.Consumer>
+  );
+}
+```
+
+一个 React 组件可以订阅 context 的变更
+
+这种方法需要一个函数作为子元素，这个函数接收当前的 context 值，并返回一个 React 节点
 
 ## Refs
 
@@ -276,7 +324,7 @@ class TodoList extends Component {
 
 `key` 是唯一可以传递给 `Fragment` 的属性
 
-#### 短语法
+### 短语法
 
 可以用 `<> </>` 来声明 Fragments
 
@@ -300,7 +348,7 @@ class TodoList extends Component {
 
 事件命名采用驼峰命名法（onclick 写成 onClick）
 
-#### this 指向
+### this 指向
 
 ES6 class 并不会为方法自动绑定 this 到当前对象
 
@@ -376,13 +424,164 @@ class MyComponent extends React.Component {
 }
 ```
 
+## Hook
+
+Hook 是一些可以让你在函数组件里 **钩入** React state 及生命周期等特性的函数
+
+Hook 不能在 class 组件中使用 —— 这使得你不使用 class 也能使用 React
+
+### useState
+
+```tsx
+import React, { useState } from 'react';
+
+function Example() {
+  // 声明一个叫 “count” 的 state 变量。
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+### useEffect
+
+ React 组件中执行过数据获取、订阅或者手动修改过 DOM 等操作成为 **副作用**
+
+`useEffect` 就是一个 **Effect Hook**，给函数组件增加了操作副作用的能力
+
+默认情况下，React 会在每次渲染后调用副作用函数，**包括第一次渲染的时候**
+
+```tsx
+import React, { useState, useEffect } from 'react';
+
+function Example() {
+  const [count, setCount] = useState(0);
+  
+  // 相当于 componentDidMount 和 componentDidUpdate:
+  useEffect(() => {
+    // 使用浏览器的 API 更新页面标题
+    document.title = `You clicked ${count} times`;
+  });
+
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+    </div>
+  );
+}
+```
+
+#### 清除机制
+
+副作用函数还可以通过返回一个函数来指定如何 **清除** 副作用，React 会在组件卸载的时候执行清除操作，它会在调用一个新的 effect 之前对前一个 effect 进行清理
+
+```tsx
+import React, { useState, useEffect } from 'react'
+
+const MouseTracker: React.FC = () => {
+  const [ positions, setPositions ] = useState({x: 0, y: 0})
+  function updateMouse(e: MouseEvent) {
+    setPositions({ x: e.clientX, y: e.clientY })
+  }
+  useEffect(() => {
+    document.addEventListener('click', updateMouse)
+    return () => {
+      document.removeEventListener('click', updateMouse)
+    }
+  })
+  return (
+    <p>X: {positions.x}, Y : {positions.y}</p>
+  )
+}
+```
+
+#### 指定更新
+
+在某些情况下，每次渲染后都执行清理或者执行 effect 可能会导致性能问题
+
+如果某些特定值在两次重渲染之间没有发生变化，你可以通知 React **跳过** 对 effect 的调用，只要传递数组作为 `useEffect` 的第二个可选参数即可
+
+```tsx
+useEffect(() => {
+  document.title = `You clicked ${count} times`;
+}, [count]); // 仅在 count 更改时更新
+```
+
+如果想执行只运行一次的 effect（**仅在组件挂载和卸载时执行**），可以传递一个 **空数组** 作为第二个参数
+
+### useRef
+
+`useRef` 返回一个可变的 ref 对象，其 `.current` 属性被初始化为传入的参数。返回的 ref 对象在组件的整个生命周期内保持不变
+
+**当 ref 对象内容发生变化时，`useRef` 并不会通知你，变更 `.current` 属性不会引发组件重新渲染**
+
+```tsx
+function TextInputWithFocusButton() {
+  const inputEl = useRef(null);
+  const onButtonClick = () => {
+    // `current` 指向已挂载到 DOM 上的文本输入元素
+    inputEl.current.focus();
+  };
+  return (
+    <>
+      <input ref={inputEl} type="text" />
+      <button onClick={onButtonClick}>Focus the input</button>
+    </>
+  );
+}
+```
+
+### useContext
+
+```jsx
+const value = useContext(MyContext);
+```
+
+接收一个 context 对象（`React.createContext` 的返回值）并返回该 context 的当前值
+
+当前的 context 值由上层组件中距离当前组件最近的 `<MyContext.Provider>` 的 `value` prop 决定
+
+### 自定义 Hook
+
+通过自定义 Hook，可以将组件逻辑提取到可重用的函数中
+
+**自定义 Hook 是一个函数，其名称以 “`use`” 开头，函数内部可以调用其他的 Hook**
+
+```tsx
+import React, { useState, useEffect } from 'react'
+
+const useMousePosition = () => {
+  const [ positions, setPositions ] = useState({x: 0, y: 0})
+  function updateMouse(e: MouseEvent) {
+    setPositions({ x: e.clientX, y: e.clientY })
+  }
+  useEffect(() => {
+    document.addEventListener('mousemove', updateMouse)
+    return () => {
+      document.removeEventListener('mousemove', updateMouse)
+    }
+  }, [])
+  return positions
+}
+```
+
 ## 组件生命周期
 
 组件从创建到销毁成为生命周期，分为三个阶段：挂载、更新、卸载。
 
 类组件才有生命周期方法，函数组件没有生命周期方法。
 
-#### 挂载阶段
+### 挂载阶段
 
 此阶段组件创建、初始化，并挂载到 DOM 中。
 
@@ -402,7 +601,7 @@ class MyComponent extends React.Component {
 
 组件被挂载到 DOM 后调用（只有一次），可以获取 DOM 节点，常用于依赖 DOM 节点的操作，向服务器发起请求等。方法中调用 `this.setState` 会引起组件渲染。
 
-#### 更新阶段
+### 更新阶段
 
 组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的。
 
@@ -438,7 +637,7 @@ class MyComponent extends React.Component {
 >
 > 2、`shouldComponentUpdate` 和 `componentWillUpdate` 中不能调用 `this.setState`。
 
-#### 卸载阶段
+### 卸载阶段
 
 组件从 DOM 被卸载的过程
 
@@ -469,7 +668,7 @@ class MyComponent extends React.Component {
 
 因为虚拟 DOM 减少对真实 DOM 的创建和对比，使用了 JS 对象进行操作
 
-#### 流水解释虚拟 DOM 原理
+### 流水解释虚拟 DOM 原理
 
 1. state 数据
 2. jsx 模板
@@ -480,7 +679,7 @@ class MyComponent extends React.Component {
 7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
 8. 直接操作 DOM，改变区别内容
 
-#### diff 策略
+### diff 策略
 
 1. Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
 2. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
@@ -492,7 +691,7 @@ React 通过 updateDepth 对 Virtual DOM 树进行层级控制，只会对相同
 
 ## 表单
 
-#### 受控组件
+### 受控组件
 
 如果一个表单元素的值是由 React 来管理的，那么它就是一个受控组件。
 
@@ -558,7 +757,7 @@ render() {
 }
 ```
 
-#### 非受控组件
+### 非受控组件
 
 非受控组件表单元素的状态由表单元素自己管理，可以使用 `ref` 来获取属性的值。
 
@@ -644,7 +843,7 @@ class Modal extends React.Component {
 
 ## Redux
 
-#### 使用
+### 使用
 
 ```jsx
 // index.js
@@ -742,7 +941,7 @@ export default (state = defaultState, action) => {
 
 `store.subscribe(listener)`：添加一个变化监听器。每当 dispatch action 的时候就会执行
 
-#### 工作流
+### 工作流
 
 React Components ==> Action Creators ==> Store ==> Reducers ==> Store ==> React Components
 
@@ -752,7 +951,7 @@ React Components ==> Action Creators ==> Store ==> Reducers ==> Store ==> React 
 4. Reducers 告诉 store 如何获取数据
 5. store 获取数据后返回给 React Components
 
-#### 拆分 reducer
+### 拆分 reducer
 
 使用 combineReducers，合并 reducer ，方便代码维护
 
