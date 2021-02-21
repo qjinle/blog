@@ -401,6 +401,19 @@ function createCache() {
 }
 ```
 
+### LHS/RHS
+
+相对于赋值操作来说的两种变量查询方式
+
+LHS --- 变量赋值或写入内存，强调写入动作，查询变量对应的内存空间
+
+RHS --- 变量查找或者从内存读取，强调读取动作，查询变量内容
+
+```js
+name = 'jinle' // LHS
+var myName = name // RHS
+```
+
 ## this 机制
 
 **this 是和执行上下文绑定的**，也就是说每个执行上下文中都有一个 this
