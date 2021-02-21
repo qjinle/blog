@@ -327,6 +327,56 @@ JavaScript 引擎利用栈这种结构来管理执行上下文
 
 ![块级作用域查找变量](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/%E5%9D%97%E7%BA%A7%E4%BD%9C%E7%94%A8%E5%9F%9F.png)
 
+#### 修改作用域
+
+JS 的作用域是遵循**词法作用域模型**，即书写过程中根据定义位置来决定划分作用域
+
+在代码书写的时候完成划分，作用域链沿着它**定义的位置**往外延伸
+
+##### eval
+
+eval 函数的入参是一个字符串，eval 在运行时改变了作用域的内容
+
+当 eval 拿到一个字符串入参后，它会把这段字符串的内容当做一段 js 代码（不管它是不是一段 js 代码），插入自己被调用的那个位置
+
+```js
+function showName(str) {
+  eval(str)
+  console.log(name)
+}
+
+var name = 'xiuyan'
+var str = 'var name = "BigBear"'
+
+showName(str) // 输出 BigBear
+```
+
+##### with
+
+with 做的事情其实就是**凭空创建出了一个新的作用域，此作用域查询规则依然遵循词法作用域的查询规则**
+
+```js
+function changeName(person) {
+  with(person) {
+    name = 'BigBear'
+  }
+}
+
+var me = {
+  name: 'xiuyan',
+  career: 'coder',
+  hobbies: ['coding', 'footbal']
+}
+
+var you = {
+  career: 'product manager'
+}
+
+changeName(me)
+changeName(you)
+console.log(name) // 输出 'BigBear'
+```
+
 ### 作用域链
 
 每个执行上下文的变量环境中，都包含了一个外部引用，用来指向外部的执行上下文，这条指向链条就是 **作用域链**
@@ -384,21 +434,60 @@ console.log(bar.getName())
 
 #### 闭包实际应用
 
-隐藏数据
+##### 模拟私有变量的实现
 
-```javascript
-4// 闭包隐藏数据，只提供 API
-function createCache() {
-    const data = {} // 闭包中的数据，被隐藏，不被外界访问
-    return {
-        set: function (key, val) {
-            data[key] = val
-        },
-        get: function (key) {
-            return data[key]
+```js
+const User = (function() {
+    // 定义私有变量_password
+    let _password
+
+    class User {
+        constructor (username, password) {
+            // 初始化私有变量_password
+            _password = password
+            this.username = username
         }
+       login() {
+           // 这里我们增加一行 console，为了验证 login 里仍可以顺利拿到密码
+           console.log(this.username, _password)
+           // 使用 fetch 进行登录请求，同上，此处省略
+       }
+    }
+    return User
+})()
+
+let user = new User('jinle', '123456')
+```
+
+##### 偏函数与柯里化
+
+柯里化是把 **接受 n 个参数的 1 个函数** 改造为 **只接受 1个参数的 n 个互相嵌套的函数** 的过程
+
+偏函数是固定函数的 **某一个或几个参数**，然后返回一个新的函数（这个函数用于接收剩下的参数）
+
+```js
+function generateName(prefix, type, itemName) {
+    return prefix + type + itemName
+}
+var itemFullName = generateName('大卖网', '母婴', '奶瓶')
+
+// 柯里化
+function generateName(prefix) {  
+    return function(type) {
+        return function (itemName) {
+            return prefix + type + itemName
+        }    
     }
 }
+var itemFullName = generateName('大卖网')('母婴')('奶瓶')
+
+// 偏函数
+function generateName(prefix) {
+    return function(type, itemName) {
+        return prefix + type + itemName
+    }
+}
+var itemFullName = generateName('大卖网')('母婴', '奶瓶')
 ```
 
 ### LHS/RHS
