@@ -163,24 +163,54 @@ function deepClone(obj = {}) {
 };
 ```
 
+### 手写 call 函数
+
+```js
+Function.prototype.myCall = function (ctx, ...args) {
+	ctx = arguments[0] || window
+  // 把函数挂到目标对象上
+  ctx.func = this
+  // 执行函数，利用扩展运算符将数组展开
+  const res = ctx.func(...args)
+  // 删除 step1 中挂到目标对象上的函数
+  delete ctx.func
+  return res
+}
+```
+
+### 手写 apply 函数
+
+```js
+Function.prototype.myApply = function (ctx, args) {
+  ctx = arguments[0] || window
+  // 把函数挂到目标对象上
+  ctx.func = this
+  let res
+  // 执行函数，利用扩展运算符将数组展开
+  if (args) {
+    res = ctx.func(...args)
+  } else {
+    res = ctx.func()
+  }
+  // 删除 step1 中挂到目标对象上的函数
+  delete ctx.func
+  return res
+}
+```
+
 ### 手写 bind 函数
 
 ```javascript
-// 模拟 bind
-Function.prototype.bind1 = function () {
-    // 将参数拆解为数组
-    const args = Array.prototype.slice.call(arguments)
-
-    // 获取 this（数组第一项）
-    const t = args.shift()
-
-    // fn1.bind(...) 中的 fn1
-    const self = this
-
-    // 返回一个函数
-    return function () {
-        return self.apply(t, args)
-    }
+Function.prototype.myBind = function (ctx, ...args) {
+  ctx = arguments[0] || window
+  // 记录当前函数
+  const _this = this
+  return function (...args2) {
+    ctx.fnc = _this
+    const res = args.length !== 0 ? ctx.fnc(...args) : ctx.fnc(...args2)
+    delete ctx.fnc
+    return res
+  }
 }
 ```
 
@@ -503,9 +533,90 @@ name = 'jinle' // LHS
 var myName = name // RHS
 ```
 
+## 内存泄漏
+
+该释放的变量（内存垃圾）没有被释放，仍然霸占着原有的内存不松手，导致内存占用不断攀高，带来性能恶化、系统崩溃等一系列问题，这种现象就叫内存泄漏
+
+### 闭包导致
+
+`unused` 是一个不会被使用的闭包，但和它共享同一个父级作用域的 `someMethod`，则是一个 **可抵达** 的闭包
+
+`unused` 引用了 `originalThing`，这导致和它共享作用域的 `someMethod` 也间接地引用了 `originalThing`
+
+结果就是 `someMethod` 产生了对 `originalThing` 的持续引用，`originalThing` 虽然没有任何意义和作用，却永远不会被回收
+
+`originalThing` 每次 `setInterval` 都会改变一次指向（指向最近一次的 `theThing` 赋值结果），这导致无法被回收的无用 `originalThing` 越堆积越多，最终导致严重的内存泄漏
+
+```js
+var theThing = null;
+var replaceThing = function () {
+  var originalThing = theThing;
+  var unused = function () {
+    if (originalThing) // 'originalThing'的引用
+      console.log("嘿嘿嘿");
+  };
+  theThing = {
+    longStr: new Array(1000000).join('*'),
+    someMethod: function () {
+      console.log("哈哈哈");
+    }
+  };
+};
+setInterval(replaceThing, 1000);
+```
+
+### 全局变量导致
+
+定义变量没有 var，则会被挂载到全局对象上
+
+```js
+function test() {
+  me = 'jinle'
+}
+```
+
+### 定时器导致
+
+在 setInterval 和链式调用的 setTimeout 这两种场景下，定时器的工作可以说都是无穷无尽的
+
+当定时器囊括的函数逻辑不再被需要、而我们又忘记手动清除定时器时，它们就会永远保持对内存的占用
+
+```js
+setInterval(function() {
+    // 函数体
+}, 1000);
+
+setTimeout(function() {
+  // 函数体
+  setTimeout(arguments.callee, 1000);
+}, 1000);
+```
+
+### DOM 导致
+
+删除 DOM 后，myDiv 对 DOM 的引用依然存在，堆积多了就会存在内存隐患
+
+```js
+const myDiv = document.getElementById('myDiv')
+
+function handleMyDiv() {
+    // 一些与myDiv相关的逻辑
+}
+
+// 使用myDiv
+handleMyDiv()
+
+// 尝试”删除“ myDiv
+document.body.removeChild(document.getElementById('myDiv'));
+```
+
 ## this 机制
 
 **this 是和执行上下文绑定的**，也就是说每个执行上下文中都有一个 this
+
+**this 的指向是在调用时决定的，而不是在书写时决定的。这点和闭包恰恰相反**
+
+多数情况下，this 指向调用它所在 **方法** 的那个 **对象**
 
 ### 全局中 this
 
@@ -526,6 +637,8 @@ var myName = name // RHS
    2. 解决此问题可以 **在外层函数中声明一个变量保存 this**（实质是把 this 体系转为作用域体系）
    3. 解决此问题还可用 **ES6 的箭头函数**（指向外层函数）
 2. **普通函数中的 this 默认指向全局对象 window**
+3. **立即执行函数中 this 指向 window**
+4. **setTimeout/setInterval 中传入的函数 this 指向 window**
 
 ## new 机制
 
@@ -553,7 +666,33 @@ return tempObj
 
 ## 垃圾回收机制
 
+在 JS 中，垃圾回收算法有两种 —— **引用计数法** 和 **标记清除法**
+
 数据分别存储在调用栈和堆之中，其垃圾回收机制是不同的
+
+### 引用计数法
+
+**在引用计数法的机制下，内存中的每一个值都会对应一个引用计数。当垃圾收集器感知到某个值的引用计数为 0 时，就判断它 “没用” 了，随即这块内存就会被释放**
+
+现代浏览器已经废除这种算法，因为其无法判断循环引用的场景
+
+```js
+function badCycle() {
+  var cycleObj1 = {}
+  var cycleObj2 = {}
+  cycleObj1.target = cycleObj2
+  cycleObj2.target = cycleObj1
+}
+
+badCycle() // 执行后，cycleObj1、cycleObj2 不会被清除
+```
+
+### 标记清除法
+
+在标记清除算法中，一个变量是否被需要的判断标准，是 **它是否可抵达**
+
+1. 标记阶段 --- 垃圾收集器会先找到根对象（在浏览器里根对象是 Window，在 Node 里根对象是 Global），从根对象出发，垃圾收集器会扫描所有可以通过根对象触及的变量，这些对象会被标记为 **可抵达**。
+2. 清除阶段 --- 没有被标记为 **可抵达** 的变量，就会被认为是不需要的变量，这波变量会被清除
 
 ### 栈中垃圾回收
 
