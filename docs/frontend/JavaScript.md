@@ -329,7 +329,16 @@ const dog = new Dog('旺财', 3)
 
 这个搜索的轨迹，就叫做原型链
 
+```js
+dog.eat()
+dog.toString()
+```
 
+![](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/JS%E5%8E%9F%E5%9E%8B%E9%93%BE.jpg)
+
+> 几乎所有 JavaScript 中的对象都是位于原型链顶端的 Object 的实例，除了 `Object.prototype`
+>
+> 当然，如果我们手动用 `Object.create(null)` 创建一个没有任何原型的对象，那它也不是 Object 的实例
 
 ### new Object() 和 Object.crate() 
 
@@ -818,7 +827,34 @@ V8 在执行过程中既有 **解释器 Ignition**，又有 **编译器 TurboFan
 
 异步基于 JS 单线程语言，不会阻塞代码执行；同步会阻塞代码执行。
 
-### 手写 Promise 加载图片
+### Promise
+
+Promise 对象是一个代理对象，它接受你传入的 executor（执行器）作为入参，允许你把异步任务的成功和失败分别绑定到对应的处理方法上去，其解决了 **回调地狱** 的问题
+
+#### Promise 状态
+
+Promise实例的状态是可以改变的，但它 **只允许被改变一次**
+
+- pending 状态：不会触发 then 或 catch
+- fulfilled 状态：会触发后续的 then 回调函数 
+- rejected 状态：会触发后续的 catch 回调函数
+
+**`.then()` 入参必须为函数，如不是会跳过该 `.then()`**
+
+**`.then()` 一般正常返回 resolved 状态的 promise，`.then()` 里抛出错误，会返回 rejected 状态的 promise**
+
+**`.catch()` 不抛出错误，会返回 resolved 状态的 promise，`.catch()` 抛出错误，会返回 rejected 状态的 promise**
+
+#### Promise 方法
+
+- **Promise.all(iterable)** --- 方法返回一个新的 promise 对象，该 promise 对象在 iterable 参数对象里所有的 promise 对象都成功的时候才会触发成功，一旦有任何一个 iterable 里面的 promise 对象失败则立即触发该 promise 对象的失败
+- **Promise.race(iterable)** --- 当 iterable 参数里的任意一个子 promise 被成功或失败后，父 promise 马上也会用子 promise 的成功返回值或失败详情作为参数调用父 promise 绑定的相应处理函数，并返回该 promise 对象
+- **Promise.reject(reason)** ---  返回一个状态为失败的 Promise 对象，并将给定的失败信息传递给对应的处理方法
+- **Promise.resolve(value)** --- 返回一个 Promise 对象，但是这个对象的状态由你传入的 value 决定
+  - 如果传入的是一个带有 then 方法的对象，返回的 Promise 对象的最终状态由 then 方法执行决定
+  - 否则的话，返回的 Promise 对象状态为 fulfilled，同时这里的 value 会作为 then 方法中指定的 onfulfilled 的入参
+
+#### 手写 Promise 加载图片
 
 ```javascript
 function loadImg(src) {
@@ -837,6 +873,104 @@ function loadImg(src) {
 }
 ```
 
+#### 手写 Promise
+
+```js
+function MyPromise(executor) {
+  // value 记录异步任务成功的执行结果
+  this.value = null;
+  // reason 记录异步任务失败的原因
+  this.reason = null;
+  // status 记录当前状态，初始化是 pending
+  this.status = 'pending';
+
+  // 缓存两个队列，维护 resolved 和 rejected 各自对应的处理函数
+  this.onResolvedQueue = [];
+  this.onRejectedQueue = [];
+
+  // 把 this 存下来，后面会用到
+  var self = this;
+
+  // 定义 resolve 函数
+  function resolve(value) {
+    // 如果不是 pending 状态，直接返回
+    if (self.status !== 'pending') {
+      return;
+    }
+    // 异步任务成功，把结果赋值给 value
+    self.value = value;
+    // 当前状态切换为 resolved
+    self.status = 'resolved';
+    // 用 setTimeout 延迟队列任务的执行
+    setTimeout(function () {
+      // 批量执行 resolved 队列里的任务
+      self.onResolvedQueue.forEach(resolved => resolved(self.value));
+    });
+  }
+
+  // 定义 reject 函数
+  function reject(reason) {
+    // 如果不是 pending 状态，直接返回
+    if (self.status !== 'pending') {
+      return;
+    }
+    // 异步任务失败，把结果赋值给 value
+    self.reason = reason;
+    // 当前状态切换为 rejected
+    self.status = 'rejected';
+    // 用 setTimeout 延迟队列任务的执行
+    setTimeout(function () {
+      // 批量执行 rejected 队列里的任务
+      self.onRejectedQueue.forEach(rejected => rejected(self.reason));
+    });
+  }
+
+  // 把 resolve 和 reject 能力赋予执行器
+  executor(resolve, reject);
+}
+
+// then 方法接收两个函数作为入参（可选）
+MyPromise.prototype.then = function (onResolved, onRejected) {
+
+  // 注意，onResolved 和 onRejected必须是函数；如果不是，我们此处用一个透传来兜底
+  if (typeof onResolved !== 'function') {
+    onResolved = function (x) { return x };
+  }
+  if (typeof onRejected !== 'function') {
+    onRejected = function (e) { throw e };
+  }
+  // 依然是保存 this
+  var self = this;
+  // 判断是否是 resolved 状态
+  if (self.status === 'resolved') {
+    // 如果是 执行对应的处理方法
+    onResolved(self.value);
+  } else if (self.status === 'rejected') {
+    // 若是 rejected 状态，则执行 rejected 对应方法
+    onRejected(self.reason);
+  } else if (self.status === 'pending') {
+    // 若是 pending 状态，则只对任务做入队处理
+    self.onResolvedQueue.push(onResolved);
+    self.onRejectedQueue.push(onRejected);
+  }
+  return this
+};
+```
+
+### Generator
+
+除了 Promise， ES2015 还为我们提供了 Generator
+
+Generator 有利于异步的特性是，它可以在执行中被中断、然后等待一段时间再被我们唤醒。通过这个 **中断后唤醒** 的机制，我们可以把  Generator 看作是异步任务的容器，利用 `yield` 关键字，实现对异步任务的等待
+
+### async/await
+
+1. 执行 async 函数，返回的是 Promise 对象
+2. await 相当于 Promise 的 then
+3. try...catch 可以捕获异常，代替了 Promise 的 catch
+
+**await 后面的代码相当于放在 callback 回调中执行，要等同步代码执行完才执行**
+
 ### event loop 运行机制
 
 event loop执行过程：
@@ -848,24 +982,6 @@ event loop执行过程：
 5. **每一次 call stack 结束，都会触发 DOM 渲染（不一定非得渲染，就是给一次 DOM 渲染的机会！！！），然后再进行 event loop**
 6. 轮询查找 Callback Queue，如有则移动到 Call Stack执行
 7. .然后继续轮询查找
-
-### Promise 状态
-
-1. pending 状态：不会触发 then 或 catch
-2. resolved 状态：会触发后续的 then 回调函数 
-3. rejected 状态：会触发后续的 catch 回调函数
-
-**then() 一般正常返回 resolved 状态的 promise，then() 里抛出错误，会返回 rejected 状态的 promise**
-
-**catch() 不抛出错误，会返回 resolved 状态的 promise，catch() 抛出错误，会返回 rejected 状态的 promise**
-
-### async/await
-
-1. 执行 async 函数，返回的是 Promise 对象
-2. await 相当于 Promise 的 then
-3. try...catch 可以捕获异常，代替了 Promise 的 catch
-
-**await 后面的代码相当于放在 callback 回调中执行，要等同步代码执行完才执行**
 
 ### for...of 
 
