@@ -298,9 +298,38 @@ div1.addEventListener('click', event => {
 
 ## 原型和原型链
 
-`prototype`：显示原型
+JS 原型编程范式的核心思想就是 **利用实例来描述对象，用实例作为定义对象和继承的基础**，其体现就是 **基于原型链的继承**
 
-`__proto__`：隐式原型
+### 原型
+
+每个构造函数都拥有一个 `prototype` 属性，它指向构造函数的原型对象，这个原型对象中有一个 `construtor` 属性指回构造函数
+
+每个实例都有一个 `__proto__` 属性，当我们使用构造函数去创建实例时，实例的 `__proto__` 属性就会指向构造函数的原型对象
+
+```js
+// 创建一个Dog构造函数
+function Dog(name, age) {
+  this.name = name
+  this.age = age
+}
+Dog.prototype.eat = function() {
+  console.log('eat')
+}
+// 使用Dog构造函数创建dog实例
+const dog = new Dog('旺财', 3)
+```
+
+![](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/JS%E5%8E%9F%E5%9E%8B.jpg)
+
+### 原型链
+
+- 调用实例的属性 / 方法时，他首先搜索实例本身
+- 当发现实例没有定义对应的属性 / 方法时，它会转而去搜索实例的原型对象
+- 如果原型对象中也搜索不到，它就去搜索原型对象的原型对象
+
+这个搜索的轨迹，就叫做原型链
+
+
 
 ### new Object() 和 Object.crate() 
 
