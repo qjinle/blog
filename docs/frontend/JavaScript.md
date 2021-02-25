@@ -41,17 +41,45 @@ lang: zh-CN
 !!false === false;
 ```
 
-### 定义变量
-
-var 是 ES5 语法，let const 是 ES6 的语法；var有变量提升
-
-let const 有块级作用域
-
 ### 类型转换
 
 强制：`parseInt`、`parseFloat`、`toString`
 
 隐式：if、逻辑运算、==、+ 拼接字符串
+
+### 变量提升
+
+在 var 时代，**不管我们的变量声明是写在程序的哪个角落，最后都会被提到作用域的顶端去**，这就是变量提升
+
+其原理即是在 **编译阶段**，JS 引擎会搜集所以变量声明，并提前让声明生效
+
+```js
+console.log(num) 
+var num = 1
+
+// 等同于
+
+var num
+console.log(num)
+num = 1
+```
+
+在 ES6 引入的 let 和 const 即不存在变量提升，它们的声明生效时机和具体代码的执行时机保持一致
+
+#### 暂时性死区
+
+ES6 中有明确的规定：如果区块中存在 let 和 const 命令，这个区块对这些命令声明的变量，从一开始就形成了封闭作用域
+
+假如我们尝试在声明前去使用这类变量，就会报错，报错的区域就叫做暂时性死区
+
+```js
+var me = 'xiuyan';
+
+{
+	me = 'bear'; // 暂时性死区
+	let me;
+}
+```
 
 ## 数组
 
@@ -127,6 +155,42 @@ function unique(arr) {
     return [...set]
 }
 ```
+
+### 类数组
+
+- 它必须是一个对象
+- 它有 length 属性
+
+```js
+const book = {
+  0: 'how to read a book',
+  1: 10,
+  length: 2
+}
+```
+
+#### 转化为数组
+
+- Array 原型上的 `slice` 方法 --- 这个方法如果不传参数的话会返回原数组的一个拷贝，因此可以用此方法转换类数组到数组：
+
+  ```js
+  const arr = Array.prototype.slice.call(arrayLike);
+  ```
+
+- `Array.from` 方法 --- 这是 ES6 新增的一个数组方法，专门用来把类数组转为数组：
+
+  ```js
+  const arr = Array.from(arrayLike);
+  ```
+
+- 扩展运算符 --- 可以把类数组对象转换为数组，前提是这个类数组对象上部署了遍历器接口，比如函数内部的 arguments 变量（它也是类数组对象），就满足条件，可以用这种方法来转换：
+
+  ```js
+  function demo() {
+    console.log('转换后的 arguments 对象：', [...arguments])
+  } 
+  demo(1, 2, 3, 4) // 转换后的 arguments 对象：[1, 2, 3, 4]
+  ```
 
 ## 函数
 
@@ -249,6 +313,96 @@ function isEqual(obj1, obj2) {
     return true
 }
 ```
+
+## DOM
+
+把 HTML 中各个标签定义出的元素以对象的形式包装起来，确保开发者可以通过 JS 脚本来操作 HTML
+
+### 常用 API
+
+DOM API常见操作，无非是增删改查
+
+#### 获取 DOM 节点
+
+```js
+- getElementById // 按照 id 查询
+- getElementsByTagName // 按照标签名查询
+- getElementsByClassName // 按照类名查询
+- querySelector // 按照 css 选择器查询第一个匹配
+- querySelectorAll // 按照 css 选择器查询所以匹配
+```
+
+#### 创建 DOM 节点
+
+```js
+// 首先获取父节点
+var container = document.getElementById('container')
+
+// 创建新节点
+var targetSpan = document.createElement('span')
+
+// 设置 span 节点的内容
+targetSpan.innerHTML = 'hello world'
+
+// 把新创建的元素塞进父节点里去
+container.appendChild(targetSpan) 
+```
+
+#### 删除 DOM 节点
+
+```js
+// 获取目标元素的父元素
+var container = document.getElementById('container')
+// 获取目标元素
+var targetNode = document.getElementById('title')
+// 删除目标元素
+container.removeChild(targetNode)  
+```
+
+或者通过子节点数组来完成删除：
+
+```js
+// 获取目标元素的父元素
+var container = document.getElementById('container')
+// 获取目标元素
+var targetNode = container.childNodes[1]
+// 删除目标元素
+container.removeChild(targetNode) 
+```
+
+#### 修改 DOM 元素
+
+修改 DOM 元素这个动作可以分很多维度，比如说移动 DOM 元素的位置，修改 DOM 元素的属性等
+
+##### 交换 DOM 元素位置
+
+```js
+// 获取父元素
+var container = document.getElementById('container')   
+ 
+// 获取两个需要被交换的元素
+var title = document.getElementById('title')
+var content = document.getElementById('content')
+
+// 交换两个元素，把 content 置于 title 前面
+container.insertBefore(content, title)
+```
+
+##### 修改 DOM 元素属性
+
+可以使用 `getAttribute` 和 `setAttribute` 来获取和设置属性
+
+```js
+var title = document.getElementById('title')
+
+// 获取 id 属性
+var titleId = title.getAttribute('id')
+
+// 修改 id 属性
+title.setAttribute('id', 'anothorTitle')
+```
+
+此外，我们通过访问 DOM 对象中提供给我们的属性名，也可以达成查询并修改某一些属性的目的
 
 ## 事件
 
