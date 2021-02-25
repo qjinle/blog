@@ -314,6 +314,50 @@ function isEqual(obj1, obj2) {
 }
 ```
 
+### 手写节流 Throttle
+
+通过在一段时间内 **无视后来产生的回调请求** 来实现
+
+```js
+function throttle(fn, delay) {
+  let timer = null
+
+  return function() {
+    if (timer) {
+			return
+    }
+    let self = this
+    let args = arguments
+    timer = setTimeout(() => {
+      fn.apply(self, args)
+      timer = null
+    }, delay)
+  }
+}
+```
+
+### 手写防抖 Debounce
+
+确保在一段时间内 **不再有回调请求**
+
+```js
+function debounce(fn, delay) {
+  let timer = null
+
+  return function () {
+    if (timer) {
+      clearTimeout(timer)
+    }
+    let self = this
+    let args = arguments
+    timer = setTimeout(() => {
+      fn.apply(self, args)
+      timer = null
+    }, delay)
+  }
+}
+```
+
 ## DOM
 
 把 HTML 中各个标签定义出的元素以对象的形式包装起来，确保开发者可以通过 JS 脚本来操作 HTML
@@ -404,7 +448,80 @@ title.setAttribute('id', 'anothorTitle')
 
 此外，我们通过访问 DOM 对象中提供给我们的属性名，也可以达成查询并修改某一些属性的目的
 
-## 事件
+### DOM 事件流
+
+- 事件流 --- 它描述的是事件在页面中传播的顺序
+- 事件 --- 它描述的是发生在浏览器里的动作。这个动作可以是用户触发的，也可以是浏览器触发的。像点击（click）、鼠标悬停（mouseover）、鼠标移走（mousemove）这些都是事件
+- 事件监听函数 --- 事件发生后，浏览器如何响应——用来应答事件的函数，就是事件监听函数，也叫事件处理程序
+
+#### 事件对象
+
+当 DOM 接受了一个事件、对应的事件处理函数被触发时，就会产生一个事件对象 event 作为处理函数的入参，这个对象中囊括了与事件有关的信息，比如事件具体是由哪个元素所触发、事件的类型等等
+
+##### currentTarget
+
+它记录了事件当下正在被哪个元素接收，这个元素是一直在改变的，因为事件的传播毕竟是个层层穿梭的过程
+
+如果事件处理程序绑定的元素，与具体的触发元素是一样的，那么函数中的 `this`、`event.currentTarget`、和 `event.target` 三个值是相同的，我们可以以此为依据，判断当前的元素是否就是目标元素
+
+##### target
+
+指触发事件的具体目标，也就是最具体的那个元素，是事件的真正来源
+
+就算事件处理程序没有绑定在目标元素上、而是绑定在了目标元素的父元素上，只要它是由内部的目标元素冒泡到父容器上触发的，那么我们仍然可以通过 `target` 来感知到目标元素才是事件真实的来源
+
+##### preventDefault 阻止默认行为
+
+这个方法用于阻止特定事件的默认行为，如 `a` 标签的跳转等
+
+##### stopPropagation 不再派发事件
+
+这个方法用于终止事件在传播过程的捕获、目标处理或起泡阶段进一步传播。调用该方法后，该节点上处理该事件的处理程序被调用，事件不再被分派到其他节点
+
+### 自定义事件
+
+有一些行为，是浏览器感知不到的，这是我们就需要自定义事件
+
+比如有两个 div，需要监听 divA 的点击行为，让 B 能感知点击 A 的行为
+
+```html
+<div id="divA">我是A</div>
+<div id="divB">我是B</div>
+```
+
+```js
+var clickAEvent = new Event('clickA');
+
+// 获取 divB 元素 
+var divB = document.getElementById('divB')
+// divB 监听 clickA 事件
+divB.addEventListener('clickA',function(e){
+  console.log('我是小B，我感觉到了小A')
+  console.log(e.target)
+}) 
+
+// A 元素的监听函数也得改造下
+divA.addEventListener('click',function(){
+  console.log('我是小A')
+  // 注意这里 dispatch 这个动作，就是我们自己派发事件了
+  divB.dispatchEvent(clickAEvent)
+})  
+```
+
+### 事件代理
+
+利用事件的冒泡特性，把多个子元素的同一类型的监听逻辑，合并到父元素上通过一个监听函数来管理的行为，就是事件代理
+
+通过事件代理，可以减少内存开销、简化注册步骤，大大提高开发效率
+
+```js
+// 比如绑定 10 个 li 的点击事件，可以绑定在父级 ul 节点上
+// ul 不仅能感知到这个冒上来的事件，它还可以通过 e.target 拿到实际触发事件的那个元素
+var ul = document.getElementById('poem')
+ul.addEventListener('click', function(e){
+  console.log(e.target.innerHTML)
+}) 
+```
 
 ### 通用事件监听函数
 
@@ -428,26 +545,6 @@ function bindEvent(elem, type, selector, fn) {
         }
     })
 }
-```
-
-### 事件冒泡
-
-`event.stopProgagation`：阻止冒泡
-
-### 事件代理
-
-代码简洁、减少浏览器内存占用、但是不要滥用
-
-```js
-const div1 = document.querySelector('#div1');
-div1.addEventListener('click', event => {
-    // 获取被点击元素
-    const target = event.target;
-    // 判断元素是否为指定标签
-    if (target.matches('a')) {
-        alert(target.innerHTML);
-    }
-})
 ```
 
 ## 原型和原型链
