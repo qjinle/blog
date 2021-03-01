@@ -153,15 +153,17 @@ state 是组件内部维护的状态，是可变的
 
 父组件通过 props 传递数据给子组件
 
-子组件通过调用父组件传递的 props 上的函数，实现向父组件通信
+子组件通过调用父组件传递的 props 上的函数，实现向父组件通信：父组件将作用域为自身的函数传递给子组件，子组件在调用该函数时，把目标数据以函数入参的形式交到父组件手中即可
 
 #### 非父子组件通信
 
-可以借助 context（慎用，会使数据流混乱），情况复杂用 Redux
+可以借助 context（慎用，会使数据流混乱），情况复杂用 Redux，还可以使用 EventBus
 
 ##### context
 
-Context 设计目的是为了共享那些对于一个组件树而言是**全局**的数据，例如当前认证的用户、主题或首选语言。可以避免通过中间组件传递 props
+Context 提供了一个无需为每层组件手动添加 props，就能在组件树间进行数据传递的方法
+
+Context 设计目的是为了共享那些对于一个组件树而言是 **全局** 的数据，例如当前认证的用户、主题或首选语言。可以避免通过中间组件传递 props
 
 ### 组件和服务端通信
 
@@ -190,6 +192,8 @@ componentDidMount 会更优选：
 ## Context
 
 Context 提供了一种在组件之间共享此类值的方式，而不必显式地通过组件树的逐层传递 props
+
+Context 设计目的是为了共享那些对于一个组件树而言是 **全局** 的数据，例如当前认证的用户、主题或首选语言
 
 ```jsx
 // Context 可以让我们无须明确地传遍每一个组件，就能将值深入传递进组件树。
@@ -577,9 +581,17 @@ const useMousePosition = () => {
 
 ## 组件生命周期
 
-组件从创建到销毁成为生命周期，分为三个阶段：挂载、更新、卸载。
+组件从创建到销毁成为生命周期，分为三个阶段：**挂载、更新、卸载**
 
-类组件才有生命周期方法，函数组件没有生命周期方法。
+类组件才有生命周期方法，函数组件没有生命周期方法
+
+生命周期在 React 16.4 后进行了更新（已标注）
+
+![新生命周期](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/React%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png)
+
+- **Render 阶段**：用于计算一些必要的状态信息。这个阶段可能会被 React 暂停，这一点和 React16 引入的 Fiber 架构是有关的
+- **Pre-commit阶段**：所谓 commit，这里指的是 **更新真正的 DOM 节点** 这个动作。所谓 Pre-commit，就是说我在这个阶段其实还并没有去更新真实的 DOM，不过 DOM 信息已经是可以读取的了
+- **Commit 阶段**：在这一步，React 会完成真实 DOM 的更新工作。Commit 阶段，我们可以拿到真实 DOM（包括 refs）
 
 ### 挂载阶段
 
@@ -589,9 +601,13 @@ const useMousePosition = () => {
 
 组件使用 ES6 `class` 构造时先调用的方法，一般用于初始化组件的 `state` 以及绑定事件处理方法等。
 
-##### componentWillMount（即将淘汰）
+##### componentWillMount（废除）
 
 被挂载到 DOM 前调用（只有一次），比较少用。方法中调用 `this.setState` 不会引起组件渲染。
+
+##### getDerivedStateFromProps（新）
+
+接收 `props` 和 `state` 两个入参，应返回一个对象来更新 `state`，如果返回 `null` 则不更新任何内容（不推荐使用）
 
 ##### render（必要的）
 
@@ -603,9 +619,13 @@ const useMousePosition = () => {
 
 ### 更新阶段
 
-组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的。
+组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的
 
-##### componentWillReceiveProps(nextProps)（即将淘汰）
+##### getDerivedStateFromProps（新）
+
+同上
+
+##### componentWillReceiveProps(nextProps)（废除）
 
 此方法在 `props` 引起组件更新时被调用，`this.setState` 不会触发该方法。
 
@@ -619,13 +639,19 @@ const useMousePosition = () => {
 
 可以减少组件不必要的渲染，从而优化性能。
 
-##### componentWillUpdate(nextProps, nextState)（即将淘汰）
+##### componentWillUpdate(nextProps, nextState)（废除）
 
 此方法在 `render` 之前调用，少用。
 
 ##### render
 
 与上相同
+
+##### getSnapshotBeforeUpdate(prevProps, prevState)（新）
+
+**这个生命周期函数必须有返回值**，它的返回值会作为第三个参数传递给 `componentDidUpdate`
+
+该函数触发时，真实的 DOM 还没有更新，可用于需要对更新前后的 DOM 节点信息做一些对比或处理的操作
 
 ##### componentDidUpdate(prevProps, prevState)
 
@@ -643,7 +669,7 @@ const useMousePosition = () => {
 
 ##### componentWillUnmount
 
-常用于执行一些清理工作，如清除定时器，清除手动创建的 DOM 元素，以免内存泄漏。
+会在组件卸载及销毁之前直接调用，常用于执行一些清理工作，如清除定时器，清除手动创建的 DOM 元素，以免内存泄漏。
 
 ## 虚拟 DOM
 
@@ -679,15 +705,24 @@ const useMousePosition = () => {
 7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
 8. 直接操作 DOM，改变区别内容
 
-### diff 策略
+### diff 算法
 
-1. Web UI 中 DOM 节点跨层级的移动操作特别少，可以忽略不计。
-2. 拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。
-3. 对于同一层级的一组子节点，它们可以通过唯一 id 进行区分。
+传统 diff 算法的复杂度为 O(n^3)，但是一般 DOM 跨层级的情况是非常少见的
 
-基于策略一，React 对树的算法进行了简洁明了的优化，即对树进行分层比较，两棵树只会对同一层次的节点进行比较。
+所以 React 只针对同层级 DOM 节点做比较，将 O(n^3) 复杂度的问题转换成 O(n) 复杂度的问题
 
-React 通过 updateDepth 对 Virtual DOM 树进行层级控制，只会对相同颜色方框内的 DOM 节点进行比较，即同一个父节点下的所有子节点。当发现节点已经不存在，则该节点及其子节点会被完全删除掉，不会用于进一步的比较。这样只需要对树进行一次遍历，便能完成整个 DOM 树的比较。
+1. 当对比两棵树时，`diff` 算法会优先比较两棵树的根节点，如果它们的类型不同，那么就认为这两棵树完全不同，**这是两个完全不同的组件**，因此直接卸载旧组件，挂载新组件
+2. 处理完根节点这个层次的对比，React 会继续跳到下个层次去对比根节点的子节点们，子节点的对比思路和根节点是一致的
+
+#### diff 策略
+
+- 策略一（**tree diff**）
+  - Web UI中 DOM 节点跨层级的移动操作特别少，可以忽略不计
+- 策略二（**component diff**）
+  - 拥有相同类的两个组件，生成相似的树形结构
+  - 拥有不同类的两个组件，生成不同的树形结构
+- 策略三（**element diff**）
+  - 对于同一层级的一组子节点，通过唯一 id 区分
 
 ## 表单
 
