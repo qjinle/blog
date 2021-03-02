@@ -136,14 +136,14 @@ export default {
 
 #### 钩子函数
 
-- beforeCreate：此时数据还没挂载，**不要修改 data 数据**，无法访问到数据和 DOM，一般不做操作
-- created：data 数据挂载完成，修改数据不会触发其他钩子，可用于 ajax 请求初始化数据
-- beforeMount
-- mounted
-- beforeUpdate
-- updated
-- beforeDestory：一般在这里做一些善后工作，例如清除计时器、清除非指令绑定的事件等
-- destoryed
+- **beforeCreate** --- 此时数据还没挂载，**不要修改 data 数据**，无法访问到数据和 DOM，一般不做操作
+- **created** --- data 数据挂载完成，修改数据不会触发其他钩子，可用于 ajax 请求初始化数据，不过 DOM 未挂载，组件仍不可见
+- **beforeMount** --- 开始创建 VDOM，可以访问数据
+- **mounted** --- VDOM 创建完毕并且已经挂在为真实 DOM
+- **beforeUpdate** --- 组件更新前
+- **updated** --- 组件更新后
+- **beforeDestory** --- 一般在这里做一些善后工作，例如清除计时器、清除非指令绑定的事件等
+- **destoryed**
 
 ### data
 
@@ -172,7 +172,7 @@ vm.$data.count = 6
 console.log(vm.count) // => 6
 ```
 
-#### 为何 data 必须是一个函数？
+#### 为何 data 必须是一个函数
 
 定义的 Vue 文件是一个类，每次使用相当于对类实例化，`data` 数据以函数返回值形式定义，这样每复用一次组件，就会返回一份新的 `data`，类似于给每个组件实例创建一个私有的数据空间，让各个组件实例维护各自的数据，类似形成闭包。
 
@@ -341,7 +341,21 @@ data() {
 <button @click.exact="onClick">A</button>
 ```
 
-### 自定义 v-model
+## 组件
+
+### 组件通讯
+
+#### 父子组件通信
+
+父组件通过 `props` 传递数据给子组件。
+
+父组件对子组件的自定义事件使用 `v-on:eventName=doSomething` 进行监听，当子组件内部触发了该自定义事件时（使用 `$emit('eventName')`），父组件执行 `doSomething`，从而实现子组件向父组件的通信。
+
+#### 非父子组件通信
+
+同个 vue 实例下使用 `vm.$on` 鉴定事件，`vm.$emit` 触发事件
+
+## 自定义 v-model
 
 ```vue
 <template>
@@ -373,7 +387,7 @@ export default {
 </script>
 ```
 
-### 异步组件
+## 异步组件
 
 `defineAsyncComponent`
 
@@ -392,17 +406,18 @@ const AsyncComp = Vue.defineAsyncComponent(
 app.component('async-example', AsyncComp)
 ```
 
-### keep-alive 缓存组件
+## keep-alive 缓存组件
 
-```
-缓存组件，不需要重复渲染
+keep-alive 是 Vue 提供的一个内置组件，用来对组件进行缓存
 
-如多个静态 tab 页面的切换
+**在组件切换过程中将状态保留在内存中，防止重复渲染DOM**
 
-优化性能
-```
+组件包裹 keep-alive 后会多出两个生命周期：deactivated、actived
 
-### mixin
+- **deactivated** --- 组件被换掉时触发，并且会被缓存到内存中
+- **actived** --- 组件被切回来时触发，再去缓存里找这个组件
+
+## mixin
 
 多个组件有相同的逻辑，抽离出来
 
@@ -427,7 +442,7 @@ const app = Vue.createApp({
 app.mount('#mixins-basic') // => "hello from mixin!"
 ```
 
-### 自定义指令
+## 自定义指令
 
 ```js
 const app = Vue.createApp({})
@@ -458,29 +473,11 @@ app.directive('my-directive', () => {
 const myDirective = app.directive('my-directive')
 ```
 
-## 组件
-
-### 组件通讯
-
-#### 父子组件通信
-
-父组件通过 `props` 传递数据给子组件。
-
-父组件对子组件的自定义事件使用 `v-on:eventName=doSomething` 进行监听，当子组件内部触发了该自定义事件时（使用 `$emit('eventName')`），父组件执行 `doSomething`，从而实现子组件向父组件的通信。
-
-#### 非父子组件通信
-
-同个 vue 实例下使用 `vm.$on` 鉴定事件，`vm.$emit` 触发事件
-
-## 原理
-
-### MVVM 模式 - 数据驱动视图
-
-### 双向绑定原理
+## 双向绑定原理
 
 vue 数据双向绑定是通过数据劫持结合发布者-订阅者模式的方式来实现的。通过 `Object.defineProperty()` 来劫持各个属性的 `setter`，`getter`，再数据变动时发布消息给订阅者，触发响应的监听回调。
 
-#### 实现过程
+### 实现过程
 
 1、实现一个监听器 Observer，用来劫持并监听所有属性，如果有变动的，就通知订阅者。
 
@@ -673,13 +670,15 @@ class SelfVue {
 }
 ```
 
+### 缺陷
+
 `Object.defineProperty()` 缺点
 
 - 深度监听，需要递归到底，一次计算量大
 - 无法监听新增属性/删除属性（Vue.set Vue.delete）
 - 无法监听原生数组，需要特殊处理
 
-### 虚拟DOM
+## 虚拟DOM
 
 用 JS 模拟 DOM 结构
 
@@ -724,9 +723,145 @@ class SelfVue {
 - tag 不相同，则直接删掉重建，不再深度比较
 - tag 和 key，两者都相同，则认为是相同结点，不再深度比较
 
-### 编译模板
+## nextTick
 
-模板到 render 函数，再到 vnode，再到渲染和更新
+### 使用
+
+在下次 DOM 更新循环结束之后执行延迟回调。在修改数据之后立即使用这个方法，获取更新后的 DOM
+
+```js
+// 修改数据
+vm.msg = 'Hello'
+// DOM 还没有更新
+Vue.nextTick(function () {
+  // DOM 更新了
+})
+
+// 作为一个 Promise 使用 (2.1.0 起新增，详见接下来的提示)
+Vue.nextTick()
+  .then(function () {
+    // DOM 更新了
+  })
+```
+
+### 原理
+
+当 Vue 数据更新发生时
+
+1. Vue 不会立刻给你执行视图层的更新动作
+2. 而是先把这个更新动作存在 **异步更新队列**
+3. 即使一个 watcher 被多次触发，它也只会被推进异步更新队列一次
+4. 在同步逻辑执行完之后，watcher 对应的就是其依赖属性的最新的值
+5. 最后，Vue 会把异步更新队列的动作集体出队，批量更新
+
+这个实现异步任务派发的接口，就叫做 **nextTick**
+
+#### 逻辑统筹者——nextTick
+
+```js
+// 暴露 nextTick 方法
+export function nextTick (cb?: Function, ctx?: Object) {
+  let _resolve
+  // 维护一个异步更新队列
+  callbacks.push(() => {
+    if (cb) {
+      try {
+        cb.call(ctx)
+      } catch (e) {
+        handleError(e, ctx, 'nextTick')
+      }
+    } else if (_resolve) {
+      _resolve(ctx)
+    }
+  })
+  // pending 是一个锁，确保任务执行有序、不重复
+  if (!pending) {
+    pending = true
+    timerFunc()
+  }
+  // 兜底逻辑，处理入参不是回调的情况
+  if (!cb && typeof Promise !== 'undefined') {
+    return new Promise(resolve => {
+      _resolve = resolve
+    })
+  }
+}
+// callbacks - 异步更新队列
+// pending - 锁
+// timerFunc - 异步任务的派发函数
+```
+
+1. nextTick 的入参是一个回调函数，这个回调函数就是一个任务
+2. 每次 nextTick 接收一个任务，它不会立刻去执行它，而是把它 push 进 callbacks 这个异步更新队列里
+3. 检查 pending 的值
+   1. 为 false 时，意味着 **现在还没有一个异步更新队列被派发出去**，直接调用 timerFunc，把当前维护的这个异步队列给派发出去
+   2. 为 true 时，意味着现在异步更新队列（callbacks）已经被 **派发** 出去了，这时只需要往队列添加任务就可以了
+
+#### 异步任务派发器——timerFunc
+
+```js
+// 用来派发异步任务的函数
+let timerFunc
+
+// 下面这一段逻辑，是根据浏览器的不同，选择不同的 api 来派发异步任务
+if (typeof Promise !== 'undefined' && isNative(Promise)) {
+  const p = Promise.resolve()
+  timerFunc = () => {
+    p.then(flushCallbacks)
+    if (isIOS) setTimeout(noop)
+  }
+  isUsingMicroTask = true
+} else if (!isIE && typeof MutationObserver !== 'undefined' && (
+  isNative(MutationObserver) ||
+  MutationObserver.toString() === '[object MutationObserverConstructor]'
+)) {
+  let counter = 1
+  const observer = new MutationObserver(flushCallbacks)
+  const textNode = document.createTextNode(String(counter))
+  observer.observe(textNode, {
+    characterData: true
+  })
+  timerFunc = () => {
+    counter = (counter + 1) % 2
+    textNode.data = String(counter)
+  }
+  isUsingMicroTask = true
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  timerFunc = () => {
+    setImmediate(flushCallbacks)
+  }
+} else {
+  // Fallback to setTimeout.
+  timerFunc = () => {
+    setTimeout(flushCallbacks, 0)
+  }
+}
+```
+
+不同的 timerFunc 之间有一个共性，它们都在派发 flushCallbacks 这个函数
+
+timerFunc 按照优先级分别可能通过：Promise.then、MutationObserver、setImmediate、setTimeout 四种途径派发
+
+> 优先微任务派发从效率上来说更优秀，宏任务派发会导致我们的界面更新 **延迟一个事件循环**
+
+#### 任务执行器——flushCallbacks
+
+```js
+function flushCallbacks () {
+  // 把“锁”打开
+  pending = false
+  // 创造 callbacks 副本，避免副作用
+  const copies = callbacks.slice(0)
+  // callbacks 队列置空
+  callbacks.length = 0
+  // 逐个执行异步任务
+  for (let i = 0; i < copies.length; i++) {
+    copies[i]()
+  }
+}
+```
+
+负责把 callbacks 里的任务逐个取出，依次执行
 
 ## 面试题
 
