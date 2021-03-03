@@ -724,6 +724,10 @@ const useMousePosition = () => {
 - 策略三（**element diff**）
   - 对于同一层级的一组子节点，通过唯一 id 区分
 
+## Fiber
+
+
+
 ## 表单
 
 ### 受控组件

@@ -863,53 +863,21 @@ function flushCallbacks () {
 
 负责把 callbacks 里的任务逐个取出，依次执行
 
-## 面试题
+## MVVM
 
-#### 5. 描述组件渲染和更新的过程
+- View 层：视图层，对应到 `<template>` 标签的内容
+- VM 层：View-Model，对应到 Vue 实例
+  - 是 View 和 Model 间的媒介
+  - 当用户操作通过 View 修改 View-Model 层的数据后，View-Model 会去修改 Model，然后再反过来把修改后的数据映射到 View 层上去
+- Model 层： 模型层，其实就是数据层
+  - 对应到 Vue 中的数据
+  - 这个数据并非一个固定的实体，它可以代指 data 属性，也可以代指 Vuex 提供的数据，总之，它是页面所依赖的 JS 数据对象
 
-```
-- 初次渲染过程
-  - 解析模板为 render 函数（vue-loader）
-  - 触发响应式，监听 data 属性 getter setter
-  - 执行 render 函数，生成 vnode，patch(elem,vnode)
-  
-- 更新过程
-  - 修改 data，触发 setter
-  - 重新执行 render 函数，生成 newVnode
-  - patch(vnode,newVnode)
-  
-- 异步渲染
-  - $nextTick
-```
+MVVM 模型的关键，在于 View 的变化会直接映射在 ViewModel 中，开发者开发 View 中的显示逻辑和 View-Model 中调用 model 的业务逻辑可以隔离的非常好，不需要在 View 中还去维护一块和 ViewModel 间的逻辑
 
-#### 10. 何时需要使用 beforeDsetory
+## Vue-Router
 
-```
-解绑自定义事件 event.$off （内存泄漏问题）
-
-清除定时器
-
-解绑自定义 DOM 事件，如 window.scroll
-```
-
-#### 11. Vue为何是异步渲染，$nextTick何用
-
-```
-异步渲染以及合并 data 修改，以提高渲染性能
-
-$nextTick 在 DOM 更新完后触发回调
-```
-
-#### 12. Vue 常见性能优化
-
-```
-合理使用 v-show 和 v-if
-合理使用 computed
-v-for 时加 key，以及避免和 v-if 同时使用
-自定义事件、DOM 事件及时销毁
-合理使用异步组件
-合理使用 keep-alive
-data 层级不要太深
-使用 vue-loader 在开发环境做模板编译
-```
+- hash: --- 使用 URL hash 值来作路由。支持所有浏览器
+- history --- 需要 HTML5 History API 和服务器配置结合。对浏览器版本有要求，不支持低版本浏览器
+- abstract --- 支持所有 JavaScript 运行环境。如果当前环境没有浏览器 API，路由会自动进入这个模式
 
