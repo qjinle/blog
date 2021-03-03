@@ -25,7 +25,7 @@ lang: zh-CN
 
 ### BFC
 
-BFC，Block formmat context，块级格式化上下文。它是一块独立的区域，内部元素的渲染不会影响边界以外的元素。BFC 的意思是形成一个范围，让内部元素不能脱离这个范围
+BFC，Block formmat context，块级格式化上下文。它是一块 **独立** 的区域，内部元素的渲染不会影响边界以外的元素。BFC 的意思是形成一个范围，让内部元素不能脱离这个范围
 
 BFC 主要用于：
 
@@ -55,17 +55,6 @@ BFC 主要用于：
   - 使用float布局
   - 两侧使用margin负值，以便和中间内容横向重叠
   - 防止中间内容被两侧覆盖，一个用padding一个用margin
-
-### 手写清除浮动clearfix
-
-```css
-/* 手写 clearfix */
-.clearfix:after {
-	content: '';
-	display: table;
-	clear: both;
-}
-```
 
 ### flex 布局
 
@@ -207,13 +196,116 @@ BFC 主要用于：
 
 ## 响应式
 
-### rem
+### viewport
 
-​	rem是一个长度单位，相对于html根元素的font-size的值
+viewport 也叫 **视口**，可以通过 meta 标签来控制它，在移动端可以分为 **布局视口（layout viewport）**、**视觉视口（visual viewport）**和 **理想视口（ideal viewport）**
 
-### 如何实现
+```html
+<meta name="viewport" content="width=device-width">
+```
 
-​	媒体查询屏幕宽度，设置不同的html的font-size
+设置 `width = device-width` 的目的正是为了 **使布局视口的宽度刚好匹配上视觉视口的宽度**
+
+#### 布局视口
+
+上面设置的 width 就是布局视口的宽度，布局视口指的是 **页面实际布局所占用的区域**，也就是 CSS 可以绘制的区域
+
+`document.documentElement.clientWidth` 可以用来获取布局视口的宽度
+
+#### 视觉视口
+
+视觉视口指的是 **用户设备实际的可见区域**，也就是浏览器的宽高
+
+`window.innerWidth` 和 `window.innerHeight` 可以用来获取视觉视口的宽高
+
+![](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/%E8%A7%86%E5%8F%A3%E6%AF%94%E8%BE%83.png)
+
+#### 理想视口
+
+当视觉视口和布局视口大小不一样时，就会出现不符合预期的展示效果，实际上，很多时候，布局视口本身的宽度都是无法和视觉视口完全匹配的
+
+理想视口随即诞生，它指的是 **布局视口最理想的尺寸**，也就是整个页面刚好全部覆盖手机屏幕的尺寸（这个尺寸不用我们计算，厂商根据手机屏幕尺寸大小，会提供一个最符合这个屏幕尺寸页面设计方案，我们只需通过上面那行代码即可）
+
+### 媒体查询
+
+媒体查询可以 **根据不同屏幕大小展示不同的样式**
+
+- `@media` 是媒体查询属性的标识
+- `screen` 指的是媒体类型
+- `max-width` 是对最大宽度的限制，比如屏幕不大于 320px 时，采纳对应样式规则
+- `min-width` 是对最小宽度的限制，比如屏幕不小于 768px 时，采纳对应样式规则
+
+```css
+@media screen and (max-width: 320px) {
+    div {
+     width: 160px;
+    }
+}
+
+@media screen and (min-width: 768px) {
+    div {
+     width: 300px;
+    }
+}
+```
+
+### rem 和 em
+
+#### rem
+
+rem 指的是 **相对于HTML根元素的字体大小**（font-size）来计算的长度单位
+
+```css
+html { 
+  font-size: 100px; 
+}
+```
+
+那么就有如下换算：
+
+```
+1rem = 100px
+```
+
+#### em
+
+em 指的是 **相对于当前元素的字体大小**（font-size）来计算的长度单位
+
+```css
+div {
+  font-size: 20px;
+  padding: 10em; /*200px*/ 
+  width: 20em; /*400px*/ 
+}
+```
+
+#### rem 实现响应式
+
+该方式核心思路是以 rem 作为布局单位，根据设备屏幕大小的不同，动态地修改根元素的 font-size，相当于间接地修改了页面中所有元素的大小，进而实现了响应式布局
+
+```js
+function refreshRem() {
+    // 获取文档对象(根元素）
+    const docEl = doc.documentElement;
+    // 获取视图容器宽度
+    const docWidth = docEl.getBoundingClientRect().width;
+    // rem 取值为视图容器宽度的十分之一大小
+    const rem = width / 10;
+    // 设置 rem 大小
+    docEl.style.fontSize = rem + 'px';
+}
+// 监听浏览器窗口大小的变化
+window.addEventListener('resize', refreshRem);
+
+// 载至 flexible.js （手淘前端团队整合的一套相当成熟的移动端自适应解决方案库）
+```
+
+### vw 和 vh
+
+- **vw** --- `1vw` 等于 `1%` 的 `viewport` 宽
+- **vh** --- `1vh` 等于 `1%` 的 `viewport` 高
+
+不同手机设备的 `viewport` 都是有差异的，通常不会给元素一个固定像素的宽高，所以需要一个相对于 `viewport `的单位，也就是 `vw` 和 `vh`
 
 ## 工程化
 
@@ -265,3 +357,18 @@ PostCss 的主要工作是：
 - style-loader --- 创建 style 标签，把 CSS 内容写入标签
 
 **css-loader 的执行顺序一定要安排在 style-loader 的前面**，因为要先编译后插入
+
+## 常见问题
+
+### 清除浮动
+
+```css
+/* 手写 clearfix */
+.clearfix:after {
+	content: '';
+	display: table;
+	clear: both;
+}
+```
+
+### 
