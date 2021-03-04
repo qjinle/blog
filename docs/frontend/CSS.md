@@ -7,21 +7,9 @@ lang: zh-CN
 
 ### 盒子模型的宽度
 
-​	offsetWidth = 内容宽度 + 内边距 + 边框 （无外边距）
+offsetWidth = 内容宽度 + 内边距 + 边框 （无外边距）
 
-​	`box-sizing: border-box;`设置后，offsetWidth  = width
-
-### margin 纵向重叠
-
-​	相邻元素的 margin-top 和 margin-bottom 会发生重叠，空白内容也会重叠
-
-### margin 负值
-
-​	margin-top 和 margin-left 负值，元素向上、向左移动 
-
-​	margin-right 负值，右侧元素左移，自身不受影响 
-
-​	margin-bottom 负值，下方元素上移，自身不受影响
+`box-sizing: border-box;` 设置后，offsetWidth  = width
 
 ### BFC
 
@@ -58,7 +46,7 @@ BFC 主要用于：
 
 ### flex 布局
 
-​	父项常见属性：
+父项常见属性：
 
 - flex-direction：设置主轴的方向
 - justify-content：设置主轴上的子元素排列方式
@@ -67,7 +55,7 @@ BFC 主要用于：
 - align-items：设置侧轴上的子元素排列方式（单行）
 - flex-flow：复合属性，相当于同时设置了 flex-direction 和 flex-wrap
 
-​	子项常见属性：
+子项常见属性：
 
 + flex：子项目占的份数
 + align-self：控制子项自己在侧轴的排列方式
