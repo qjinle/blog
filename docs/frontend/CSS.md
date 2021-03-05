@@ -128,57 +128,124 @@ IE 盒模型 `width = content + padding + border` `height = content + padding + 
 
 ## 布局
 
+### 文档流
+
+文档流：内联元素默认从左到右流，遇到阻碍或者宽度不够自动换行，继续按照从左到右的方式布局。块级元素单独占据一行，并按照从上到下的方式布局
+
+**脱离文档流：**
+
+1. `float: left`
+2. `position: absolute`
+3. `position: fixed`
+
 ### BFC
 
 BFC，Block formmat context，块级格式化上下文
 
-它是一块 **独立** 的区域，内部元素的渲染不会影响边界以外的元素。BFC 的意思是形成一个范围，让内部元素不能脱离这个范围
+**具有 BFC 特性的元素可以看作是隔离了的独立容器，容器里面的元素不会在布局上影响到外面的元素，并且 BFC 具有普通容器所没有的一些特性**
 
-BFC 主要用于：
+**BFC 的意思是形成一个范围，让内部元素不能脱离这个范围**
 
-- 清除浮动
-- 阻止 margin 发生重叠
-- 阻止元素被浮动的元素覆盖
+#### 触发条件
 
-形成BFC的常见条件：
+- 浮动元素：`float` 除 `none` 以外的值
+- 绝对定位元素：`position` 为 `absolute` 或 `fixed`
+- `overflow` 不是 `visible`（`hidden`、`auto`、`scroll`） （可用 `overflow: hidden;` 清除浮动）
+- `display` 是 `flex`、`inline-block` 或者 `table-cell`
 
-- float 不是 none 
+#### 应用
 
-- position 是 absolute 或者 fixed 
+1. **阻止外边距（margin）会发生重叠**，可以将其放在不同的 BFC 容器中
+2. **BFC 可以包含浮动元素（清除浮动）**
+   1. 浮动的元素会脱离普通文档流
+   2. 触发容器的 BFC，那么容器将会包裹着浮动元素
+3. **BFC 可以阻止元素被浮动元素覆盖**，可在被覆盖元素中加入 `overflow: hidden`（用来实现两列布局）
 
-- overflow 不是 visible （可用 `overflow: hidden;` 清除浮动）
+### 浮动
 
-- display 是 flex、inline-block 或者 table-cell
+**浮动元素：** 浮动元素同时处于常规流内和流外的元素
 
-### float 布局
+- 块级元素认为浮动元素不存在
+- 浮动元素会影响行内元素的布局
+- 浮动元素会通过影响行内元素间接影响了包含块的布局
 
-​	圣杯布局和双飞翼布局
+#### 浮动闭合
 
-- 圣杯布局和双飞翼布局的目的：
-  - 三栏布局，中间一栏最先加载和渲染（内容最重要）
-  - 两侧内容固定，中间内容随着宽度自适应 
-  - 一般用于PC网页
-- 如何实现圣杯布局和双飞翼布局
-  - 使用float布局
-  - 两侧使用margin负值，以便和中间内容横向重叠
-  - 防止中间内容被两侧覆盖，一个用padding一个用margin
+浮动元素并不能撑起包含块，通过以下方法将包含块撑开称为 **浮动闭合**
 
-### flex 布局
+1. 设置 **BFC**
 
-父项常见属性：
+2. 设置 **伪元素**
 
-- flex-direction：设置主轴的方向
-- justify-content：设置主轴上的子元素排列方式
-- flex-wrap：设置子元素是否换行
-- align-content：设置侧轴上的子元素的排列方式（多行）
-- align-items：设置侧轴上的子元素排列方式（单行）
-- flex-flow：复合属性，相当于同时设置了 flex-direction 和 flex-wrap
+   ```css
+   .clearfix::after {
+       content: '';
+       display: block;
+       clear: both;    
+   }
+   ```
 
-子项常见属性：
+3. **包含块自己也浮动**（不推荐）
 
-+ flex：子项目占的份数
-+ align-self：控制子项自己在侧轴的排列方式
-+ order：定义子项的排列顺序（前后顺序）
+### Flex 布局
+
+Flex 是 Flexible Box 的缩写，意为 **弹性布局**，用来为盒状模型提供最大的灵活性
+
+> 注：设为 Flex 布局以后，子元素的 `float`、`clear `和 `vertical-align` 属性将失效
+
+#### Flex 容器
+
+采用 Flex 布局的元素，称为 **Flex 容器**，它的所有子元素自动成为容器成员，称为 **Flex 项目**
+
+容器默认存在两根轴：水平的主轴 和 垂直的交叉轴（项目默认沿主轴排列）
+
+#### 容器属性
+
+- `flex-direction` --- 设置主轴的方向
+  - `row`（默认值） --- 主轴为水平方向，起点在左端
+  - `row-reverse` --- 主轴为水平方向，起点在右端
+  - `column` --- 主轴为垂直方向，起点在上沿
+  - `column-reverse` --- 主轴为垂直方向，起点在下沿
+- `flex-wrap` --- 设置子元素是否换行
+  - 默认情况下，项目都排在一条线
+  - `nowrap`（默认） --- 不换行
+  - `wrap` --- 换行，第一行在上方
+  - `wrap-reverse` --- 换行，第一行在下方
+- `flex-flow` --- `flex-direction` 属性和 `flex-wrap` 属性的简写形式，默认值为 `row nowrap`
+- `justify-content` --- 设置主轴上的子元素排列方式
+  - `flex-start`（默认值） --- 左对齐
+  - `flex-end` --- 右对齐
+  - `center` --- 居中
+  - `space-between` --- 两端对齐，项目之间的间隔都相等
+  - `space-around` --- 每个项目两侧的间隔相等（项目之间的间隔比项目与边框的间隔大一倍）
+- `align-items` --- 设置交叉轴上的子元素排列方式（单行）
+  - `flex-start` --- 交叉轴的起点对齐
+  - `flex-end` --- 交叉轴的终点对齐
+  - `center` --- 交叉轴的中点对齐
+  - `baseline` --- 项目的第一行文字的基线对齐
+  - `stretch`（默认值） --- 如果项目未设置高度或设为 auto，将占满整个容器的高度
+- `align-content` --- 设置多根交叉轴线上的子元素的排列方式（多行），如果项目只有一根轴线，该属性不起作用
+  - `flex-start` --- 与交叉轴的起点对齐
+  - `flex-end` --- 与交叉轴的终点对齐
+  - `center` --- 与交叉轴的中点对齐
+  - `space-between` --- 与交叉轴两端对齐，轴线之间的间隔平均分布
+  - `space-around` --- 每根轴线两侧的间隔都相等（轴线之间的间隔比轴线与边框的间隔大一倍）
+  - `stretch`（默认值） --- 轴线占满整个交叉轴
+
+#### 项目属性
+
++ `order` --- 定义项目的排列顺序。数值越小，排列越靠前，默认为 0
++ `flex-grow` --- 定义项目的放大比例，默认为`0`，即如果存在剩余空间，也不放大
+  + 如果所有项目的 `flex-grow` 属性都为 1，则它们将等分剩余空间
++ `flex-shrink` --- 定义了项目的缩小比例，默认为1，即如果空间不足，该项目将缩小
+  + 如果所有项目的 `flex-shrink` 属性都为 1，当空间不足时，都将等比例缩小
+  + 如果一个项目的 `flex-shrink` 属性为 0，其他项目都为 1，则空间不足时，前者不缩小
++ `flex-basis` --- 定义了在分配多余空间之前，项目占据的主轴空间，它的默认值为 `auto`，即项目的本来大小
+  + 可以设为跟 `width` 或 `height` 属性一样的值，则项目将占据固定空间
++ `flex` --- `flex-grow`、`flex-shrink` 和 `flex-basis` 的简写，默认值为 `0 1 auto`
+  + 该属性有两个快捷值：`auto`（`1 1 auto`）和 none（``0 0 auto`）
+  + 建议优先使用这个属性，而不是单独写三个分离的属性，因为浏览器会推算相关值
++ `align-self` --- 控制项目自己在侧轴的排列方式，可覆盖 `align-items` 属性，默认为 `auto`
 
 ## 定位
 
