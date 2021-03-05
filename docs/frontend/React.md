@@ -14,7 +14,25 @@ lang: zh-CN
 3. 虚拟 DOM
 4. shouldComponentUpdate 减少不必要的 render 组件渲染
 
-## 组件
+## 基础
+
+### JSX
+
+#### 原生 HTML
+
+需为 `dangerouslySetInnerHTML` 传入一个包含有 `__html` 属性的对象
+
+```jsx
+const rawHtml = '<span>富文本内容<i>斜体</i><b>加粗</b></span>'
+const rawHtmlData = {
+	 __html: rawHtml // 注意，必须是这种格式
+}
+return (
+	<div>
+    <p dangerouslySetInnerHTML={rawHtmlData}></p>
+  </div>
+)
+```
 
 ### props
 

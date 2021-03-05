@@ -358,6 +358,23 @@ function debounce(fn, delay) {
 }
 ```
 
+### 手写平方根函数
+
+```js
+var mySqrt = function (x) {
+  if (x < 2) return x
+  let left = 0
+  let right = Math.floor(x / 2)
+  while (left <= right) {
+    let mid = Math.floor((right - left) / 2 + left)
+    if (mid * mid === x) return mid
+    if (mid * mid < x) left = mid + 1
+    if (mid * mid > x) right = mid - 1
+  }
+  return right
+};
+```
+
 ## DOM
 
 把 HTML 中各个标签定义出的元素以对象的形式包装起来，确保开发者可以通过 JS 脚本来操作 HTML
