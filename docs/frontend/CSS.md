@@ -79,9 +79,9 @@ CSS 优先级可以分级别：**!important > 行内样式 > ID 选择器 > 类�
 
 同一级别中后写的会覆盖先写的样式
 
-#### 权值计算
+#### 权重计算
 
-CSS 优先级还可以由一个权值决定（`[0,0,0,0]`）
+CSS 优先级还可以由一个权重决定（`[0,0,0,0]`）
 
 四个级别按顺序分别对应：
 
@@ -92,7 +92,7 @@ CSS 优先级还可以由一个权值决定（`[0,0,0,0]`）
 
 需要注意以下几点：
 
-- !important 的优先级是最高的，但出现冲突时则需比较权值
+- !important 的优先级是最高的，但出现冲突时则需比较权重
 - 优先级相同时，则采用就近原则，选择最后出现的样式
 - 继承得来的属性，其优先级最低
 
@@ -201,30 +201,30 @@ Flex 是 Flexible Box 的缩写，意为 **弹性布局**，用来为盒状模�
 
 #### 容器属性
 
-- `flex-direction` --- 设置主轴的方向
+- `flex-direction` --- **设置主轴的方向**
   - `row`（默认值） --- 主轴为水平方向，起点在左端
   - `row-reverse` --- 主轴为水平方向，起点在右端
   - `column` --- 主轴为垂直方向，起点在上沿
   - `column-reverse` --- 主轴为垂直方向，起点在下沿
-- `flex-wrap` --- 设置子元素是否换行
+- `flex-wrap` --- **设置子元素是否换行**
   - 默认情况下，项目都排在一条线
   - `nowrap`（默认） --- 不换行
   - `wrap` --- 换行，第一行在上方
   - `wrap-reverse` --- 换行，第一行在下方
 - `flex-flow` --- `flex-direction` 属性和 `flex-wrap` 属性的简写形式，默认值为 `row nowrap`
-- `justify-content` --- 设置主轴上的子元素排列方式
+- `justify-content` --- **设置主轴上的子元素排列方式**
   - `flex-start`（默认值） --- 左对齐
   - `flex-end` --- 右对齐
   - `center` --- 居中
   - `space-between` --- 两端对齐，项目之间的间隔都相等
   - `space-around` --- 每个项目两侧的间隔相等（项目之间的间隔比项目与边框的间隔大一倍）
-- `align-items` --- 设置交叉轴上的子元素排列方式（单行）
+- `align-items` --- **设置交叉轴上的子元素排列方式（单行）**
   - `flex-start` --- 交叉轴的起点对齐
   - `flex-end` --- 交叉轴的终点对齐
   - `center` --- 交叉轴的中点对齐
   - `baseline` --- 项目的第一行文字的基线对齐
   - `stretch`（默认值） --- 如果项目未设置高度或设为 auto，将占满整个容器的高度
-- `align-content` --- 设置多根交叉轴线上的子元素的排列方式（多行），如果项目只有一根轴线，该属性不起作用
+- `align-content` --- **设置多根交叉轴线上的子元素的排列方式（多行）**，如果项目只有一根轴线，该属性不起作用
   - `flex-start` --- 与交叉轴的起点对齐
   - `flex-end` --- 与交叉轴的终点对齐
   - `center` --- 与交叉轴的中点对齐
@@ -234,26 +234,163 @@ Flex 是 Flexible Box 的缩写，意为 **弹性布局**，用来为盒状模�
 
 #### 项目属性
 
-+ `order` --- 定义项目的排列顺序。数值越小，排列越靠前，默认为 0
-+ `flex-grow` --- 定义项目的放大比例，默认为`0`，即如果存在剩余空间，也不放大
++ `order` --- **定义项目的排列顺序。**数值越小，排列越靠前，默认为 0
++ `flex-grow` --- **定义项目的放大比例**，默认为`0`，即如果存在剩余空间，也不放大
   + 如果所有项目的 `flex-grow` 属性都为 1，则它们将等分剩余空间
-+ `flex-shrink` --- 定义了项目的缩小比例，默认为1，即如果空间不足，该项目将缩小
++ `flex-shrink` --- **定义了项目的缩小比例**，默认为1，即如果空间不足，该项目将缩小
   + 如果所有项目的 `flex-shrink` 属性都为 1，当空间不足时，都将等比例缩小
   + 如果一个项目的 `flex-shrink` 属性为 0，其他项目都为 1，则空间不足时，前者不缩小
-+ `flex-basis` --- 定义了在分配多余空间之前，项目占据的主轴空间，它的默认值为 `auto`，即项目的本来大小
++ `flex-basis` --- **定义了在分配多余空间之前，项目占据的主轴空间**，它的默认值为 `auto`，即项目的本来大小
   + 可以设为跟 `width` 或 `height` 属性一样的值，则项目将占据固定空间
 + `flex` --- `flex-grow`、`flex-shrink` 和 `flex-basis` 的简写，默认值为 `0 1 auto`
-  + 该属性有两个快捷值：`auto`（`1 1 auto`）和 none（``0 0 auto`）
+  + 该属性有两个快捷值：`auto`（`1 1 auto`）和 `none`（`0 0 auto`）
   + 建议优先使用这个属性，而不是单独写三个分离的属性，因为浏览器会推算相关值
-+ `align-self` --- 控制项目自己在侧轴的排列方式，可覆盖 `align-items` 属性，默认为 `auto`
++ `align-self` --- **控制项目自己在侧轴的排列方式**，可覆盖 `align-items` 属性，默认为 `auto`
+
+### 两栏布局
+
+1. **浮动布局**
+
+   `float + margin-left` 或者 `float + overflow: auto`
+
+   ```html
+   <style>
+     .aside {
+       width: 30vw;
+       height: 100vh;
+       float: left;
+       background: blue;
+     }
+     .main {
+       margin-left: 30vw;
+       /* 或者换成 overflow: auto，使其成为BFC */
+     }
+   </style>
+   <body>
+     <div class="aside"></div>
+     <div class="main">
+       <div class="content"></div>
+     </div>
+   </body>
+   ```
+
+2. **flex 布局**
+
+   ```html
+   <style>
+     .container {
+       display: flex;
+     }
+     .aside {
+       flex: 0 0 25vw;
+       /* or width: 25vw;  */
+     }
+     .main {
+       flex: 1;
+       /* 等于flex-grow: 1; */
+     }
+   </style>
+   <body>
+     <div class="container">
+       <div class="aside"></div>
+       <div class="main"></div>
+     </div>
+   </body>
+   ```
+
+### 三栏布局
+
+1. **圣杯布局**
+
+   1. middle、left、right 给浮动脱离文档流
+
+   2. container 设置 BFC 撑开盒子，设置左右内边距预留位置
+
+   3. left、right 给固定宽度，middle 设置 100% 宽度
+
+   4. middle、left、right 设置相对定位
+
+   5. left 设置 margin-left 和 left
+
+   6. right 设置 margin-left 和 right
+
+      ![](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/%E5%9C%A3%E6%9D%AF%E5%B8%83%E5%B1%80.png)
+
+   ```html
+   <style>
+     .float {
+       float: left; /* 三个都设置浮动，为了把left和right定位到左右部分 */
+       position: relative;
+       min-height: 300px;
+     }
+     .container {
+       padding: 0;
+       margin: 0;
+       padding-left: 100px;
+       padding-right: 200px;
+       height: 100%;
+       overflow: hidden; /*脱离文档流 BFC */
+     }
+     .middle {
+       width: 100%;
+       background-color: red;
+     }
+     .left {
+       width: 100px;
+       background-color: green;
+       margin-left: -100%;
+       left: -100px;
+     }
+     .right {
+       width: 200px;
+       background-color: blue;
+       margin-left: -200px;
+       right: -200px;
+     }
+   </style>
+   <body>
+     <div class="container">
+       <div class="middle float"></div>
+       <div class="left float"></div>
+       <div class="right float"></div>
+     </div>
+   </body>
+   ```
+
+2. **双飞翼布局**
+
+3. **flex 布局**
 
 ## 定位
 
-### absolute 和 relative
+### position
 
-​	relative 依据自身定位
+CSS position 属性用于指定一个元素在文档中的定位方式，top、right、bottom、left 属性则决定了该元素的最终位置
 
-​	absolute 依据最近一层的定位元素定位
+#### static
+
+**静态定位**，为 position 的默认值，指定元素使用正常的布局行为，即元素在文档常规流中当前的布局位置，此时 top、right、bottom、left 属性无效
+
+#### relative
+
+**相对定位**，元素先放置在未添加定位时的位置，再在不改变页面布局的前提下调整元素位置（因此会在此元素未添加定位时所在位置留下空白），简单来说就是 **保留文档流中位置，相对原位置定位**
+
+#### position
+
+**绝对定位**，不为元素预留空间，通过指定元素相对于 **最近的非 static 定位祖先元素的偏移**，来确定元素位置，**脱离文档流**
+
+#### fixed
+
+**固定定位**，不为元素预留空间，而是通过指定元素相对于 **屏幕视口（viewport）的位置** 来指定元素位置，**脱离文档流**
+
+- 元素的位置在屏幕滚动时不会改变
+- 打印时，元素会出现在的每页的固定位置
+- fixed 属性会创建新的层叠上下文
+- 当元素祖先的 transform 属性非 none 时，容器由视口改为该祖先
+
+#### sticky
+
+基本上是相对位置和固定位置的混合体，**允许被定位的元素表现得像相对定位一样，直到它滚动到某个阈值点为止，此后它就变得固定了**（它可用于使导航栏随页面滚动直到特定点，然后粘贴在页面顶部）
 
 ### 居中对齐
 
@@ -506,6 +643,8 @@ window.addEventListener('resize', refreshRem);
 - 支持将 CSS 文件模块化，实现复用
 
 ### PostCss
+
+PostCss是一个允许使用 JS 插件转换样式的工具
 
 PostCss 和预处理器不同于，预处理器处理的是 类CSS，而 PostCss 处理的就是 CSS 本身
 
