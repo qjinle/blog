@@ -359,7 +359,82 @@ Flex 是 Flexible Box 的缩写，意为 **弹性布局**，用来为盒状模�
 
 2. **双飞翼布局**
 
+   1. middle、left、right 给浮动脱离文档流
+
+   2. middle 设置 BFC 撑开盒子，设置 100% 宽度
+
+   3. left、right 给固定宽度
+
+   4. inner 设置左右外边距
+
+   5. left 和 right 设置 margin-left
+
+      ![](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/%E5%8F%8C%E9%A3%9E%E7%BF%BC%E5%B8%83%E5%B1%80.png)
+
+   ```html
+   <style>
+     .float {
+       float: left; /* 三个都设置浮动，为了把left和right定位到左右部分 */
+       min-height: 300px;
+     }
+     .middle {
+       width: 100%;
+       overflow: hidden;
+     }
+     .inner {
+       margin-left: 100px;
+       margin-right: 200px;
+       min-height: 300px;
+       background-color: red;
+     }
+     .left {
+       width: 100px;
+       background-color: green;
+       margin-left: -100%;
+     }
+     .right {
+       width: 200px;
+       background-color: blue;
+       margin-left: -200px;
+     }
+   </style>
+   <body>
+     <div class="middle float">
+       <div class="inner"></div>
+     </div>
+     <div class="left float"></div>
+     <div class="right float"></div>
+   </body>
+   ```
+
 3. **flex 布局**
+
+   ```html
+   <style>
+     .container {
+       display: flex;
+     }
+     .left {
+       width: 200px;
+       background: red;
+     }
+     .main {
+       flex: 1;
+       background: blue;
+     }
+     .right {
+       width: 200px;
+       background: red;
+     }
+   </style>
+   <body>
+     <div class="container">
+       <div class="left"></div>
+       <div class="main"></div>
+       <div class="right"></div>
+     </div>
+   </body>
+   ```
 
 ## 定位
 
@@ -503,7 +578,7 @@ CSS position 属性用于指定一个元素在文档中的定位方式，top、r
 
 - 写具体数值，如 30px 则继承该值
 - 写比例，如 1.5 或 2 那就继承这个比例 
-- 写百分比，如200%，则继承计算（font-size * line-height）出来的值（考点）
+- 写百分比，如 200%，则继承计算（font-size * line-height）出来的值
 
 ## 响应式
 
