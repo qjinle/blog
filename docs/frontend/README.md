@@ -9,11 +9,20 @@ lang: zh-CN
 
 - 有利于搜索引擎优化和页面爬取
 
-## 块级元素、内联元素
+## 行内元素 vs 块级元素
 
-- 块级元素：独占一行，display 为 block/table；如 div p h1 h2.., table ul ol等
+行内元素特指 **不会独占一行** 的元素，如 `span`、`a`、`label` 等
 
-- 内联元素：不独占一行，挨着放，display 为 inline/inline-block；如 span img input button
+- 行内元素属性标签它和其它标签处在同一行内
+- 行内元素只能容纳文本或者其他行内元素
+- 行内元素属性标签无法设置 `width | height | margin-top | margin-bottom | padding-top | padding-bottom`
+- 行内元素宽度随内容增加，高度随字体大小改变
+
+块级元素特指 **会独占一行** 的元素，如 `div`、`p`、`h1` 等
+
+- 块级元素其宽度自动填满其父元素宽度
+- 块级元素可以包含行内元素和块级元素
+- **p 标签中不能嵌套 div 标签**
 
 ## 前端路由
 
