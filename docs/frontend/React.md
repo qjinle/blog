@@ -446,6 +446,14 @@ class MyComponent extends React.Component {
 }
 ```
 
+### Event
+
+事件对象 Event 不是原生的事件对象，而是一个 **合成的事件对象 SyntheticEvent** ，模拟出来 DOM 事件所有能力
+
+调用 `event.nativeEvent` 可以获取原生事件对象
+
+React 默认把所有的事件都挂载到 document 上
+
 ## Hook
 
 Hook 是一些可以让你在函数组件里 **钩入** React state 及生命周期等特性的函数
