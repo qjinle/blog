@@ -87,7 +87,7 @@ Greeting.defaultProps = {
 >
 > 如果变量在 render 中没有使用，不推荐定义为一个 state，更适合为一个普通属性
 
-#### 修改 state 的一些坑
+#### setState
 
 state 直接修改不会触发 render，正确用法为 **setState()**
 
@@ -103,7 +103,7 @@ this.setState(() => ({
 }))
 ```
 
-调用 setState() 时不会立即更新，setState() 只是把修改状态放入一个队列，等 React 优化真正的执行时机，出于性能考虑，会合并多次 setState()
+**调用 setState() 时不会立即更新，setState() 只是把修改状态放入一个队列，等 React 优化真正的执行时机，出于性能考虑，会合并多次 setState()**
 
 如果此次 setState() 依赖前一次 setState() 的参数：
 
