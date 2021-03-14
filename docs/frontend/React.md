@@ -7,12 +7,30 @@ lang: zh-CN
 
 声明式开发、组件化开发、单向数据流、视图层框架、函数式编程
 
-#### 性能优化
+### 性能优化
 
-1. 函数绑定 this 放在 constructor 里面
-2. setState 异步函数，合并多次处理
-3. 虚拟 DOM
-4. shouldComponentUpdate 减少不必要的 render 组件渲染
+- 函数绑定 this 放在 constructor 里面
+- setState 异步函数，合并多次处理
+- 虚拟 DOM
+- shouldComponentUpdate 减少不必要的 render 组件渲染
+
+#### SCU
+
+`shouldComponentUpdate` 生命周期，此方法决定组件是否继续执行更新过程
+
+方法返回 `true` 则继续（默认），放回 `false` 则停止更新过程
+
+**默认情况下父组件更新，子组件会无条件更新（componentDidUpdate 会触发）**
+
+这会导致没必要的渲染，比如父组件的 `state` 发生改变，但子组件并没有发生改变，但还是会触发重新渲染，此时 `shouldComponentUpdate` 就可以发挥性能优化的作用
+
+#### PureComponent 和 memo
+
+[文档链接](https://zh-hans.reactjs.org/docs/react-api.html#reactpurecomponent)
+
+#### [immutable.js](https://immutable-js.github.io/immutable-js/)
+
+变量一旦创建就不可变更，彻底拥抱不可变值
 
 ## 基础
 
@@ -155,15 +173,9 @@ this.setState((preState, props) => ({
    }))
    ```
 
-### props 和 state 
+#### 同步异步问题
 
-props 和 state 变化都会触发组件重新渲染（render 函数）
-
-props 和 state 更新都是异步的
-
-props 对组件来说时只读的，通过父组件传值，只能在父组件修改
-
-state 是组件内部维护的状态，是可变的
+setState 在钩子函数和合成事件中是异步执行，在异步函数和原生事件中是同步执行
 
 ### 组件通信
 
@@ -206,165 +218,6 @@ componentDidMount 会更优选：
 
 - 不负责UI的呈现，负责处理业务逻辑
 - 带有内部状态
-
-## Context
-
-Context 提供了一种在组件之间共享此类值的方式，而不必显式地通过组件树的逐层传递 props
-
-Context 设计目的是为了共享那些对于一个组件树而言是 **全局** 的数据，例如当前认证的用户、主题或首选语言
-
-```jsx
-// Context 可以让我们无须明确地传遍每一个组件，就能将值深入传递进组件树。
-// 为当前的 theme 创建一个 context（“light”为默认值）。
-const ThemeContext = React.createContext('light');
-class App extends React.Component {
-  render() {
-    // 使用一个 Provider 来将当前的 theme 传递给以下的组件树。
-    // 无论多深，任何组件都能读取这个值。
-    // 在这个例子中，我们将 “dark” 作为当前的值传递下去。
-    return (
-      <ThemeContext.Provider value="dark">
-        <Toolbar />
-      </ThemeContext.Provider>
-    );
-  }
-}
-
-// 中间的组件再也不必指明往下传递 theme 了。
-function Toolbar() {
-  return (
-    <div>
-      <ThemedButton />
-    </div>
-  );
-}
-
-class ThemedButton extends React.Component {
-  // 指定 contextType 读取当前的 theme context。
-  // React 会往上找到最近的 theme Provider，然后使用它的值。
-  // 在这个例子中，当前的 theme 值为 “dark”。
-  static contextType = ThemeContext;
-  render() {
-    return <Button theme={this.context} />;
-  }
-}
-```
-
-> Context 主要应用场景在于很多不同层级的组件需要访问同样一些的数据。请谨慎使用，因为这**会使得组件的复用性变差**。
-
-### React.createContext
-
-```jsx
-const MyContext = React.createContext(defaultValue);
-```
-
-**创建一个 Context 对象**，当 React 渲染一个订阅了这个 Context 对象的组件，这个组件会从组件树中离自身最近的那个匹配的 `Provider` 中读取到当前的 context 值
-
-当组件所处的树中没有匹配到 Provider 时，其 `defaultValue` 参数才会生效
-
-### Context.Provider
-
-```jsx
-<MyContext.Provider value={/* 某个值 */}>
-```
-
-Provider 接收一个 `value` 属性，传递给消费组件
-
-当 Provider 的 `value` 值发生变化时，它内部的所有消费组件都会重新渲染
-
-### Context.Consumer
-
-```jsx
-import {ThemeContext} from './theme-context';
-function ThemeTogglerButton() {
-  // Theme Toggler 按钮不仅仅只获取 theme 值，它也从 context 中获取到一个 toggleTheme 函数
-  return (
-    <ThemeContext.Consumer>
-      {({theme, toggleTheme}) => (
-        <button onClick={toggleTheme} style={{backgroundColor: theme.background}}>
-					Toggle Theme
-        </button>
-      )}
-    </ThemeContext.Consumer>
-  );
-}
-```
-
-一个 React 组件可以订阅 context 的变更
-
-这种方法需要一个函数作为子元素，这个函数接收当前的 context 值，并返回一个 React 节点
-
-## Refs
-
-何时使用 refs：
-
-- 管理焦点，文本选择或媒体播放
-- 触发强制动画
-- 集成第三方 DOM 库
-
-```jsx
-class App extends React.Component {
-  constructor(props) {
-    super(props)
-  }
-
-  handleClick = () => {
-    this.input.current.focus()
-  }
-
-  render() {
-    return (
-      <div>
-      	// 绑定
-        <input type="text" ref={(input) => {this.input = input}} />
-        <button onClick={this.handleClick}>点我</button>
-      </div>
-    )
-  }
-}
-```
-
-## Fragments
-
-Fragments 允许将子列表分组，而无需向 DOM 添加额外节点
-
-```jsx
-class TodoList extends Component {
-  render() {
-    return (
-      <React.Fragment>
-        <div><input /><button>提交</button></div>
-        <ul>
-          <li>a</li>
-          <li>b</li>
-        </ul>
-      </React.Fragment>
-    )
-  }
-}
-```
-
-`key` 是唯一可以传递给 `Fragment` 的属性
-
-### 短语法
-
-可以用 `<> </>` 来声明 Fragments
-
-```jsx
-class TodoList extends Component {
-  render() {
-    return (
-      <>
-        <div><input /><button>提交</button></div>
-        <ul>
-          <li>a</li>
-          <li>b</li>
-        </ul>
-      </>
-    )
-  }
-}
-```
 
 ## 事件处理
 
@@ -453,6 +306,98 @@ class MyComponent extends React.Component {
 调用 `event.nativeEvent` 可以获取原生事件对象
 
 React 默认把所有的事件都挂载到 document 上
+
+## 组件生命周期
+
+组件从创建到销毁成为生命周期，分为三个阶段：**挂载、更新、卸载**
+
+类组件才有生命周期方法，函数组件没有生命周期方法
+
+生命周期在 React 16.4 后进行了更新（已标注）
+
+![新生命周期](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/React%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png)
+
+- **Render 阶段**：用于计算一些必要的状态信息。这个阶段可能会被 React 暂停，这一点和 React16 引入的 Fiber 架构是有关的
+- **Pre-commit阶段**：所谓 commit，这里指的是 **更新真正的 DOM 节点** 这个动作。所谓 Pre-commit，就是说我在这个阶段其实还并没有去更新真实的 DOM，不过 DOM 信息已经是可以读取的了
+- **Commit 阶段**：在这一步，React 会完成真实 DOM 的更新工作。Commit 阶段，我们可以拿到真实 DOM（包括 refs）
+
+### 挂载阶段
+
+此阶段组件创建、初始化，并挂载到 DOM 中。
+
+##### constructor
+
+组件使用 ES6 `class` 构造时先调用的方法，一般用于初始化组件的 `state` 以及绑定事件处理方法等。
+
+##### componentWillMount（废除）
+
+被挂载到 DOM 前调用（只有一次），比较少用。方法中调用 `this.setState` 不会引起组件渲染。
+
+##### getDerivedStateFromProps（新）
+
+接收 `props` 和 `state` 两个入参，应返回一个对象来更新 `state`，如果返回 `null` 则不更新任何内容（不推荐使用）
+
+##### render（必要的）
+
+根据组件的 `props` 和 `state` 返回一个 React 元素，用于描述组件的 UI（注意：render 不负责渲染，渲染由 React 自身负责）。`render` 是一个纯函数，不能调用 `this.setState`，这会改变组件状态。
+
+##### componentDidMount
+
+组件被挂载到 DOM 后调用（只有一次），可以获取 DOM 节点，常用于依赖 DOM 节点的操作，向服务器发起请求等。方法中调用 `this.setState` 会引起组件渲染。
+
+### 更新阶段
+
+组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的
+
+##### getDerivedStateFromProps（新）
+
+同上
+
+##### componentWillReceiveProps(nextProps)（废除）
+
+此方法在 `props` 引起组件更新时被调用，`this.setState` 不会触发该方法。
+
+`nextProps` 时父组件传递给当前组件的新的 `props`，可能与当前组件的 `props` 相等，因此往往需要比较  `nextProps` 和 `this.props` 来决定是否执行 `props` 发生变化后的逻辑。
+
+#####  shouldComponentUpdate(nextProps, nextState)
+
+此方法决定组件是否继续执行更新过程。方法返回 `true` 则继续，放回 `false` 则停止更新过程。
+
+一般通过比较 `nextProps`、`nextState` 和当前组件的 `props`、`state` 来决定返回值。
+
+可以减少组件不必要的渲染，从而优化性能。
+
+##### componentWillUpdate(nextProps, nextState)（废除）
+
+此方法在 `render` 之前调用，少用。
+
+##### render
+
+与上相同
+
+##### getSnapshotBeforeUpdate(prevProps, prevState)（新）
+
+**这个生命周期函数必须有返回值**，它的返回值会作为第三个参数传递给 `componentDidUpdate`
+
+该函数触发时，真实的 DOM 还没有更新，可用于需要对更新前后的 DOM 节点信息做一些对比或处理的操作
+
+##### componentDidUpdate(prevProps, prevState)
+
+组件更新后调用，常用于操作 DOM。
+
+`prevProps`、`prevState` 是组件更新前的 `props` 和 `state`。
+
+> 1、`componentWillReceiveProps` 中调用 `this.setState`，只有在组件 `render` 之后才会指向更新后的 `state`。
+>
+> 2、`shouldComponentUpdate` 和 `componentWillUpdate` 中不能调用 `this.setState`。
+
+### 卸载阶段
+
+组件从 DOM 被卸载的过程
+
+##### componentWillUnmount
+
+会在组件卸载及销毁之前直接调用，常用于执行一些清理工作，如清除定时器，清除手动创建的 DOM 元素，以免内存泄漏。
 
 ## Hook
 
@@ -605,154 +550,330 @@ const useMousePosition = () => {
 }
 ```
 
-## 组件生命周期
+## 高阶组件
 
-组件从创建到销毁成为生命周期，分为三个阶段：**挂载、更新、卸载**
+高阶组件（HOC）是 React 中用于复用组件逻辑的一种高级技巧。HOC 自身不是 React API 的一部分，它是一种基于 React 的组合特性而形成的设计模式
 
-类组件才有生命周期方法，函数组件没有生命周期方法
+**高阶组件是参数为组件，返回值为新组件的函数**
 
-生命周期在 React 16.4 后进行了更新（已标注）
-
-![新生命周期](https://raw.githubusercontent.com/jinle0703/img-host/master/blog/React%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F.png)
-
-- **Render 阶段**：用于计算一些必要的状态信息。这个阶段可能会被 React 暂停，这一点和 React16 引入的 Fiber 架构是有关的
-- **Pre-commit阶段**：所谓 commit，这里指的是 **更新真正的 DOM 节点** 这个动作。所谓 Pre-commit，就是说我在这个阶段其实还并没有去更新真实的 DOM，不过 DOM 信息已经是可以读取的了
-- **Commit 阶段**：在这一步，React 会完成真实 DOM 的更新工作。Commit 阶段，我们可以拿到真实 DOM（包括 refs）
-
-### 挂载阶段
-
-此阶段组件创建、初始化，并挂载到 DOM 中。
-
-##### constructor
-
-组件使用 ES6 `class` 构造时先调用的方法，一般用于初始化组件的 `state` 以及绑定事件处理方法等。
-
-##### componentWillMount（废除）
-
-被挂载到 DOM 前调用（只有一次），比较少用。方法中调用 `this.setState` 不会引起组件渲染。
-
-##### getDerivedStateFromProps（新）
-
-接收 `props` 和 `state` 两个入参，应返回一个对象来更新 `state`，如果返回 `null` 则不更新任何内容（不推荐使用）
-
-##### render（必要的）
-
-根据组件的 `props` 和 `state` 返回一个 React 元素，用于描述组件的 UI（注意：render 不负责渲染，渲染由 React 自身负责）。`render` 是一个纯函数，不能调用 `this.setState`，这会改变组件状态。
-
-##### componentDidMount
-
-组件被挂载到 DOM 后调用（只有一次），可以获取 DOM 节点，常用于依赖 DOM 节点的操作，向服务器发起请求等。方法中调用 `this.setState` 会引起组件渲染。
-
-### 更新阶段
-
-组件挂在后，`props` 和 `state` 可以引起组件更新，`props` 由渲染该组件的父组件引起（调用 `render` 方法），`state` 是由 `this.setState` 来引起更新的
-
-##### getDerivedStateFromProps（新）
-
-同上
-
-##### componentWillReceiveProps(nextProps)（废除）
-
-此方法在 `props` 引起组件更新时被调用，`this.setState` 不会触发该方法。
-
-`nextProps` 时父组件传递给当前组件的新的 `props`，可能与当前组件的 `props` 相等，因此往往需要比较  `nextProps` 和 `this.props` 来决定是否执行 `props` 发生变化后的逻辑。
-
-#####  shouldComponentUpdate(nextProps, nextState)
-
-此方法决定组件是否继续执行更新过程。方法返回 `true` 则继续，放回 `false` 则停止更新过程。
-
-一般通过比较 `nextProps`、`nextState` 和当前组件的 `props`、`state` 来决定返回值。
-
-可以减少组件不必要的渲染，从而优化性能。
-
-##### componentWillUpdate(nextProps, nextState)（废除）
-
-此方法在 `render` 之前调用，少用。
-
-##### render
-
-与上相同
-
-##### getSnapshotBeforeUpdate(prevProps, prevState)（新）
-
-**这个生命周期函数必须有返回值**，它的返回值会作为第三个参数传递给 `componentDidUpdate`
-
-该函数触发时，真实的 DOM 还没有更新，可用于需要对更新前后的 DOM 节点信息做一些对比或处理的操作
-
-##### componentDidUpdate(prevProps, prevState)
-
-组件更新后调用，常用于操作 DOM。
-
-`prevProps`、`prevState` 是组件更新前的 `props` 和 `state`。
-
-> 1、`componentWillReceiveProps` 中调用 `this.setState`，只有在组件 `render` 之后才会指向更新后的 `state`。
->
-> 2、`shouldComponentUpdate` 和 `componentWillUpdate` 中不能调用 `this.setState`。
-
-### 卸载阶段
-
-组件从 DOM 被卸载的过程
-
-##### componentWillUnmount
-
-会在组件卸载及销毁之前直接调用，常用于执行一些清理工作，如清除定时器，清除手动创建的 DOM 元素，以免内存泄漏。
-
-## 虚拟 DOM
-
-虚拟 DOM 就是一个 JS 对象，用它来描述真实 DOM
+多用于抽取不同组件相同逻辑
 
 ```jsx
-<div id='abc'><span>hello world</span></div>
-[
-  'div',
-  {
-    id: 'abc'
-  },
-  [
-    'span',
-    {},
-    'hello world'
-  ]
-]
+const HOCFactory = (Component) => {
+	class HOC extends React.Component {
+    // 在此定义多个组件公共逻辑
+    render() {
+      return <Component {...this.props} />
+    }
+  }
+  return HOC
+}
+const Component = HOCFactory(WrappedComponent)
 ```
 
-##### 为什么虚拟 DOM 会极大提升性能？
+```jsx
+// 高阶组件
+const withMouse = (Component) => {
+  class withMouseComponent extends React.Component {
+    constructor(props) {
+      super(props)
+      this.state = { x: 0, y: 0 }
+    }
+    handleMouseMove = (event) => {
+      this.setState({
+        x: event.clientX,
+        y: event.clientY
+      })
+    }
+    render() {
+      return (
+        <div style={{ height: '500px' }} onMouseMove={this.handleMouseMove}>
+          {/* 1. 透传所有 props 2. 增加 mouse 属性 */}
+          <Component {...this.props} mouse={this.state} />
+        </div>
+      )
+    }
+  }
+  return withMouseComponent
+}
 
-因为虚拟 DOM 减少对真实 DOM 的创建和对比，使用了 JS 对象进行操作
+const App = (props) => {
+  const a = props.a
+  const { x, y } = props.mouse // 接收 mouse 属性
+  return (
+    <div style={{ height: '500px' }}>
+      <h1>The mouse position is ({x}, {y})</h1>
+      <p>{a}</p>
+    </div>
+  )
+}
 
-### 流水解释虚拟 DOM 原理
+export default withMouse(App) // 返回高阶函数
+```
 
-1. state 数据
-2. jsx 模板
-3. 数据 + 模板 结合，生成虚拟 DOM
-4. 用虚拟 DOM 生成真实 DOM，渲染挂载显示
-5. state 变化
-6. 数据 + 模板 生成新的虚拟 DOM**（极大提升性能）**
-7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
-8. 直接操作 DOM，改变区别内容
+## Render Props
 
-### diff 算法
+是一种在 React 组件之间使用一个值为函数的 prop 共享代码的简单技术
 
-传统 diff 算法的复杂度为 O(n^3)，但是一般 DOM 跨层级的情况是非常少见的
+**具有 render prop 的组件接受一个返回 React 元素的函数，并在组件内部通过调用此函数来实现自己的渲染逻辑**
 
-所以 React 只针对同层级 DOM 节点做比较，将 O(n^3) 复杂度的问题转换成 O(n) 复杂度的问题
+```jsx
+class Factory extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      // 多个组件的公共逻辑
+      a: 1
+    }
+  }
+  render() {
+    return <div>{this.props.render(this.state)}</div>
+  }
+}
 
-1. 当对比两棵树时，`diff` 算法会优先比较两棵树的根节点，如果它们的类型不同，那么就认为这两棵树完全不同，**这是两个完全不同的组件**，因此直接卸载旧组件，挂载新组件
-2. 处理完根节点这个层次的对比，React 会继续跳到下个层次去对比根节点的子节点们，子节点的对比思路和根节点是一致的
+const App = () => {
+  <Factory
+    render = {(props) => <p>{props.a}</p>}
+    />
+}
+```
 
-#### diff 策略
+```jsx
+class Mouse extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { x: 0, y: 0 }
+  }
+  handleMouseMove = (event) => {
+    this.setState({
+      x: event.clientX,
+      y: event.clientY
+    })
+  }
+  render() {
+    return (
+      <div style={{ height: '500px' }} onMouseMove={this.handleMouseMove}>
+        {/* 将当前 state 作为 props ，传递给 render （render 是一个函数组件） */}
+        {this.props.render(this.state)}
+      </div>
+    )
+  }
+}
+Mouse.propTypes = {
+  render: PropTypes.func.isRequired // 必须接收一个 render 属性，而且是函数
+}
 
-- 策略一（**tree diff**）
-  - Web UI中 DOM 节点跨层级的移动操作特别少，可以忽略不计
-- 策略二（**component diff**）
-  - 拥有相同类的两个组件，生成相似的树形结构
-  - 拥有不同类的两个组件，生成不同的树形结构
-- 策略三（**element diff**）
-  - 对于同一层级的一组子节点，通过唯一 id 区分
+const App = (props) => (
+  <div style={{ height: '500px' }}>
+    <p>{props.a}</p>
+    <Mouse render={
+      /* render 是一个函数组件 */
+      ({ x, y }) => <h1>The mouse position is ({x}, {y})</h1>
+    } />
+  </div>
+)
 
-## Fiber
+/**
+ * 即，定义了 Mouse 组件，只有获取 x y 的能力。
+ * 至于 Mouse 组件如何渲染，App 说了算，通过 render prop 的方式告诉 Mouse 。
+ */
+```
 
+## Context
 
+Context 提供了一种在组件之间共享此类值的方式，而不必显式地通过组件树的逐层传递 props
+
+Context 设计目的是为了共享那些对于一个组件树而言是 **全局** 的数据，例如当前认证的用户、主题或首选语言
+
+```jsx
+// Context 可以让我们无须明确地传遍每一个组件，就能将值深入传递进组件树
+// 为当前的 theme 创建一个 context（“light”为默认值）
+const ThemeContext = React.createContext('light');
+class App extends React.Component {
+  render() {
+    // 使用一个 Provider 来将当前的 theme 传递给以下的组件树
+    // 无论多深，任何组件都能读取这个值
+    // 在这个例子中，我们将 “dark” 作为当前的值传递下去
+    return (
+      <ThemeContext.Provider value="dark">
+        <Toolbar />
+      </ThemeContext.Provider>
+    );
+  }
+}
+
+// 中间的组件再也不必指明往下传递 theme 了
+function Toolbar() {
+  return (
+    <div>
+      <ThemedButton />
+    </div>
+  );
+}
+
+class ThemedButton extends React.Component {
+  // 指定 contextType 读取当前的 theme context
+  // React 会往上找到最近的 theme Provider，然后使用它的值
+  // 在这个例子中，当前的 theme 值为 “dark”
+  static contextType = ThemeContext; 
+  render() {
+    return <Button theme={this.context} />;
+  }
+}
+//ThemedButton.contextType = ThemeContext
+
+function ThemeLink (props) {
+    // const theme = this.context // 会报错。函数式组件没有实例，即没有 this
+
+    // 函数式组件可以使用 Consumer
+    return <ThemeContext.Consumer>
+        { value => <p>link's theme is {value}</p> }
+    </ThemeContext.Consumer>
+}
+```
+
+> Context 主要应用场景在于很多不同层级的组件需要访问同样一些的数据。请谨慎使用，因为这**会使得组件的复用性变差**。
+
+### React.createContext
+
+```jsx
+const MyContext = React.createContext(defaultValue);
+```
+
+**创建一个 Context 对象**，当 React 渲染一个订阅了这个 Context 对象的组件，这个组件会从组件树中离自身最近的那个匹配的 `Provider` 中读取到当前的 context 值
+
+当组件所处的树中没有匹配到 Provider 时，其 `defaultValue` 参数才会生效
+
+### Context.Provider
+
+```jsx
+<MyContext.Provider value={/* 某个值 */}>
+```
+
+Provider 接收一个 `value` 属性，传递给消费组件
+
+当 Provider 的 `value` 值发生变化时，它内部的所有消费组件都会重新渲染
+
+### Context.Consumer
+
+```jsx
+import {ThemeContext} from './theme-context';
+function ThemeTogglerButton() {
+  // Theme Toggler 按钮不仅仅只获取 theme 值，它也从 context 中获取到一个 toggleTheme 函数
+  return (
+    <ThemeContext.Consumer>
+      {({theme, toggleTheme}) => (
+        <button onClick={toggleTheme} style={{backgroundColor: theme.background}}>
+					Toggle Theme
+        </button>
+      )}
+    </ThemeContext.Consumer>
+  );
+}
+```
+
+一个 React 组件可以订阅 context 的变更
+
+这种方法需要一个函数作为子元素，这个函数接收当前的 context 值，并返回一个 React 节点
+
+## Refs
+
+何时使用 refs：
+
+- 管理焦点，文本选择或媒体播放
+- 触发强制动画
+- 集成第三方 DOM 库
+
+```jsx
+class App extends React.Component {
+  constructor(props) {
+    super(props)
+  }
+
+  handleClick = () => {
+    this.input.current.focus()
+  }
+
+  render() {
+    return (
+      <div>
+      	// 绑定
+        <input type="text" ref={(input) => {this.input = input}} />
+        <button onClick={this.handleClick}>点我</button>
+      </div>
+    )
+  }
+}
+```
+
+## Fragments
+
+Fragments 允许将子列表分组，而无需向 DOM 添加额外节点
+
+```jsx
+class TodoList extends Component {
+  render() {
+    return (
+      <React.Fragment>
+        <div><input /><button>提交</button></div>
+        <ul>
+          <li>a</li>
+          <li>b</li>
+        </ul>
+      </React.Fragment>
+    )
+  }
+}
+```
+
+`key` 是唯一可以传递给 `Fragment` 的属性
+
+### 短语法
+
+可以用 `<> </>` 来声明 Fragments
+
+```jsx
+class TodoList extends Component {
+  render() {
+    return (
+      <>
+        <div><input /><button>提交</button></div>
+        <ul>
+          <li>a</li>
+          <li>b</li>
+        </ul>
+      </>
+    )
+  }
+}
+```
+
+## 异步组件
+
+`React.lazy` 函数能让你像渲染常规组件一样处理动态引入（的组件）
+
+`React.lazy` 接受一个函数，这个函数需要动态调用 `import()`。它必须返回一个 `Promise`，该 Promise 需要 resolve 一个 `default` export 的 React 组件
+
+然后应在 `Suspense` 组件中渲染 lazy 组件，如此使得我们可以使用在等待加载 lazy 组件时做优雅降级（如 loading 指示器等）
+
+```jsx
+const ContextDemo = React.lazy(() => import('./ContextDemo'))
+
+class App extends React.Component {
+    constructor(props) {
+        super(props)
+    }
+    render() {
+        return <div>
+            <p>引入一个动态组件</p>
+            <hr />
+            <React.Suspense fallback={<div>Loading...</div>}>
+                <ContextDemo />
+            </React.Suspense>
+        </div>
+    }
+}
+```
 
 ## 表单
 
@@ -824,19 +945,38 @@ render() {
 
 ### 非受控组件
 
-非受控组件表单元素的状态由表单元素自己管理，可以使用 `ref` 来获取属性的值。
+非受控组件表单元素的状态由表单元素自己管理，可以使用 `ref` 来获取属性的值
 
 ```jsx
+constructor() {
+  this.nameInputRef = React.createRef() // 创建 ref
+  this.fileInputRef = React.createRef()
+}
 render() {
-	return (
-		<from onSubmit={this.handleSubmit}>
-    	<input defaultValue='something' type='text' ref={(input) => this.input=input} />
-    </from>
-  )
+	// input defaultValue
+	// return <div>
+	//     {/* 使用 defaultValue 而不是 value ，使用 ref */}
+  //     <input defaultValue={this.state.name} ref={this.nameInputRef}/>
+  //     {/* state 并不会随着改变 */}
+  //     <span>state.name: {this.state.name}</span>
+  //     <br/>
+  //     <button onClick={this.alertName}>alert name</button>
+  // </div>
+  return
+	<div>
+		<input type="file" ref={this.fileInputRef}/>
+		<button onClick={this.alertFile}>alert file</button>
+	</div>
+}
+alertName = () => {
+ 	const elem = this.nameInputRef.current // 通过 ref 获取 DOM 节点
+  alert(elem.value) // 不是 this.state.name
+}
+alertFile = () => {
+	const elem = this.fileInputRef.current // 通过 ref 获取 DOM 节点
+	alert(elem.files[0].name)
 }
 ```
-
-`ref` 是一个函数，函数中把 `input` 赋值给了 `this.input`
 
 使用非受控组件设置默认值时用 `defaultValue` 设置，单选框复选框可以用 `defaultChecked` 设置
 
@@ -901,10 +1041,68 @@ class Modal extends React.Component {
         </div>
       </div>,
       this.container
+      /*document.body */
     )
   }
 }
 ```
+
+## 虚拟 DOM
+
+虚拟 DOM 就是一个 JS 对象，用它来描述真实 DOM
+
+```jsx
+<div id='abc'><span>hello world</span></div>
+[
+  'div',
+  {
+    id: 'abc'
+  },
+  [
+    'span',
+    {},
+    'hello world'
+  ]
+]
+```
+
+##### 为什么虚拟 DOM 会极大提升性能？
+
+因为虚拟 DOM 减少对真实 DOM 的创建和对比，使用了 JS 对象进行操作
+
+### 流水解释虚拟 DOM 原理
+
+1. state 数据
+2. jsx 模板
+3. 数据 + 模板 结合，生成虚拟 DOM
+4. 用虚拟 DOM 生成真实 DOM，渲染挂载显示
+5. state 变化
+6. 数据 + 模板 生成新的虚拟 DOM**（极大提升性能）**
+7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
+8. 直接操作 DOM，改变区别内容
+
+### diff 算法
+
+传统 diff 算法的复杂度为 O(n^3)，但是一般 DOM 跨层级的情况是非常少见的
+
+所以 React 只针对同层级 DOM 节点做比较，将 O(n^3) 复杂度的问题转换成 O(n) 复杂度的问题
+
+1. 当对比两棵树时，`diff` 算法会优先比较两棵树的根节点，如果它们的类型不同，那么就认为这两棵树完全不同，**这是两个完全不同的组件**，因此直接卸载旧组件，挂载新组件
+2. 处理完根节点这个层次的对比，React 会继续跳到下个层次去对比根节点的子节点们，子节点的对比思路和根节点是一致的
+
+#### diff 策略
+
+- 策略一（**tree diff**）
+  - Web UI中 DOM 节点跨层级的移动操作特别少，可以忽略不计
+- 策略二（**component diff**）
+  - 拥有相同类的两个组件，生成相似的树形结构
+  - 拥有不同类的两个组件，生成不同的树形结构
+- 策略三（**element diff**）
+  - 对于同一层级的一组子节点，通过唯一 id 区分
+
+## Fiber
+
+
 
 ## Redux
 
