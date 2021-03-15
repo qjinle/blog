@@ -2,11 +2,11 @@
 home: true
 heroImage: /logo.png
 heroText: Jinle
-tagline: Never Stop Leran
+tagline: 头顶不秃，代码不止
 actionText: enter →
 actionLink: /frontend/
 features:
-- title: 广工21届小菜鸡一枚
+- title: 广工21届前端小白
   details: 有问题联系邮箱
 - title: Wechat
   details: jinle1998_
