@@ -36,6 +36,52 @@ lang: zh-CN
 
 ### JSX
 
+JSX 是 JavaScript 的一种语法扩展，JSX 可以生成 React 元素
+
+实际上 Babel 会把 JSX 转译为 `React.createElement()` 函数调用
+
+```jsx
+const elem = <div id="div1">
+    <p>some text</p>
+    <img src={imgUrl}/>
+</div>
+
+// 等价于
+
+const imgElem = React.createElement("div", {
+  	id: "div1"
+	},
+  React.createElement("p", null, "some text"),
+  React.createElement("img", {
+  	src: imgUrl
+}))
+```
+
+`React.createElement()` 会创建这样的对象，也叫做 React 元素，其实就是 **虚拟DOM**
+
+```js
+const elem = {
+  type: 'div',
+  props: {
+    className: 'div1',
+    children: [
+      {
+        type: 'p',
+        props: {
+          children: 'some text'
+        }
+      },
+      {
+        type: 'img',
+        props: {
+          src: imgUrl
+        }
+      }
+    ]
+  }
+}
+```
+
 #### 原生 HTML
 
 需为 `dangerouslySetInnerHTML` 传入一个包含有 `__html` 属性的对象
@@ -219,7 +265,7 @@ componentDidMount 会更优选：
 - 不负责UI的呈现，负责处理业务逻辑
 - 带有内部状态
 
-## 事件处理
+## 事件机制
 
 事件命名采用驼峰命名法（onclick 写成 onClick）
 
@@ -299,13 +345,21 @@ class MyComponent extends React.Component {
 }
 ```
 
-### Event
+### 合成事件机制
 
-事件对象 Event 不是原生的事件对象，而是一个 **合成的事件对象 SyntheticEvent** ，模拟出来 DOM 事件所有能力
+React 自己实现了这么一套事件机制，它在 DOM 事件体系基础上做了改进，减少了内存的消耗，并且最大程度上解决了 IE 等浏览器的不兼容问题
+
+React 事件对象 Event 不是原生的事件对象，而是一个 **合成的事件对象 SyntheticEvent** ，模拟出来 DOM 事件所有能力
 
 调用 `event.nativeEvent` 可以获取原生事件对象
 
-React 默认把所有的事件都挂载到 document 上
+#### 特点
+
+- **React 默认把所有的事件都挂载到 document 上** （减少内存开销就是因为所有的事件都绑定在 document 上，其他节点没有绑定事件）
+- React 自身实现了一套事件冒泡机制
+- React 通过队列的形式，从触发的组件向父组件回溯，然后调用他们  JSX 中定义的 callback
+- React 有一套自己的合成事件 `SyntheticEvent`
+- React 通过对象池的形式管理合成事件对象的创建和销毁，减少了垃圾的生成和新对象内存的分配，提高了性能
 
 ## 组件生命周期
 
@@ -1077,8 +1131,8 @@ class Modal extends React.Component {
 3. 数据 + 模板 结合，生成虚拟 DOM
 4. 用虚拟 DOM 生成真实 DOM，渲染挂载显示
 5. state 变化
-6. 数据 + 模板 生成新的虚拟 DOM**（极大提升性能）**
-7. 使用 **diff 算法 **比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容**（极大提升性能）**
+6. 数据 + 模板 生成新的虚拟 DOM **（极大提升性能）**
+7. 使用 **diff 算法** 比较原始虚拟 DOM 和新的虚拟 DOM 的区别，找到区别内容 **（极大提升性能）**
 8. 直接操作 DOM，改变区别内容
 
 ### diff 算法
@@ -1102,128 +1156,4 @@ class Modal extends React.Component {
 
 ## Fiber
 
-
-
-## Redux
-
-### 使用
-
-```jsx
-// index.js
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import TodoList from './TodoList.js';
-import stroe from './store/index';
-
-ReactDOM.render(
-  	// 把store注入进组件
-	<Provider store={store}>
-  	<TodoList />
-  </Provider>,
-  document.getElementById('root')
-)
-```
-
-```jsx
-// todolist.js
-import React, { Component } from 'react';
-import { connect } from 'react-redux';
-
-class TodoList extends Component {
-  render() {
-    return (
-      <div>
-        <input
-          value={this.props.inputValue}
-          onChange={this.props.changeInputValue}
-        />
-      </div>
-    )
-  }
-}
-
-// 把状态树中的状态映射进组件的props
-const mapStateToProps = (state) => {
-  return {
-    inputValue: state.inputValue
-  }
-}
-
-// 把Dispatch方法映射为组件中props的方法
-const mapDispatchToProps = (dispatch) => {
-  return {
-    changeInputValue(e) {
-      const action = {
-        type: 'change_input_value',
-        value: e.target.value
-      }
-      dispatch(action);
-    }
-  }
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(TodoList);
-```
-
-```jsx
-// store.js
-import { createStore } from 'redux';
-import reducer from './reducer';
-
-const store = createStore(
-  reducer,
-  // chrome Redux
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
-);
-
-export default store;
-```
-
-```jsx
-// reducer.js
-const defaultState = {
-  inputValue: ''
-};
-
-export default (state = defaultState, action) => {
-  if(action.type === 'change_input_value') {
-    const newState = JSON.parse(JSON.stringify(state));
-    newState.inputValue = action.value;
-    return newState;
-  }
-  return state;
-}
-```
-
-`createStore(reducer)`：创建 store
-
-`store.getState()`：获取 store 的值
-
-`store.dispatch(action)`：分发 action。这是触发 state 变化的惟一途径。
-
-`store.subscribe(listener)`：添加一个变化监听器。每当 dispatch action 的时候就会执行
-
-### 工作流
-
-React Components ==> Action Creators ==> Store ==> Reducers ==> Store ==> React Components
-
-1. React Components 传递给 Action Creators 要获取的数据（Action Creators 就是一个描述“发生了什么”的普通对象）
-2. Action Creators 创建一个指令 dispatch 告诉 store 要获取的数据
-3. store 询问 Reducers 如何获取数据
-4. Reducers 告诉 store 如何获取数据
-5. store 获取数据后返回给 React Components
-
-### 拆分 reducer
-
-使用 combineReducers，合并 reducer ，方便代码维护
-
-```js
-import { combineReducers } from 'redux';
-import headerReducer from '../common/header/store/reducer';
-
-export default combineReducers({
-  header: headerReducer
-})
-```
 

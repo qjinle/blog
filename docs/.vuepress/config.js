@@ -24,6 +24,7 @@ module.exports = {
         'CSS',
         'JavaScript',
         'React',
+        'React相关库',
         'Vue',
         'TypeScript',
         'Node',
