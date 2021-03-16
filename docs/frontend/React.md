@@ -223,6 +223,21 @@ this.setState((preState, props) => ({
 
 setState 在钩子函数和合成事件中是异步执行，在异步函数和原生事件中是同步执行
 
+#### 更新过程
+
+1. `enqueueSetState` 将 `state` 放入队列中，并调用 `enqueueUpdate` 处理要更新的 `Component` 
+2. 如果组件当前正处于 `update` 事务中，则先将 `Component` 存入 `dirtyComponent` 中，否则调用 `batchedUpdates` 处理
+3. `batchedUpdates` 发起一次 `transaction.perform()` 事务
+   1. 初始化 —— 事务初始化阶段没有注册方法，故无方法要执行
+   2. 执行 `setSate` 时传入的 `callback` 方法，一般不会传 `callback` 参数
+   3. 更新 `isBatchingUpdates` 为 `false`，并执行 `FLUSH_BATCHED_UPDATES` 这个 `wrapper` 中的 `close` 方法循环遍历所有的 `dirtyComponents`，调用`updateComponent` 刷新组件，并执行它的 `pendingCallbacks`, 也就是 `setState` 中设置的 `callback`
+4. 执行生命周期 `componentWillReceiveProps`
+5. 将组件的 state 暂存队列中的 `state` 进行合并，获得最终要更新的 state 对象，并将队列置为空
+6. 执行生命周期 `componentShouldUpdate`，根据返回值判断是否要继续更新
+7. 执行生命周期 `componentWillUpdate`
+8. 执行真正的更新， `render`
+9. 执行生命周期 `componentDidUpdate`
+
 ### 组件通信
 
 #### 父子组件通信
@@ -1156,4 +1171,17 @@ class Modal extends React.Component {
 
 ## Fiber
 
+浏览器是多线程的，这些线程包括 JS 引擎线程（主线程），以及 GUI 渲染线程，定时器线程，事件线程等工作线程。其中，JS 引擎线程和 GUI 渲染线程是互斥的。又因为绝大多数的浏览器页面的刷新频率取决于显示器的刷新频率，即每 16.6 毫秒就会通过 GUI 渲染引擎刷新一次。所以，如果 JS 引擎线程一次性执行了一个长时间（大于 16.6 毫秒）的同步任务，就可能出现掉帧的情况，影响用户的体验
 
+在旧版本的 React 中，对于一个庞大的组件，无论是组件的创建还是更新都可能需要较长的时间。而 Fiber 的思路是 **将原本耗时较长的同步任务分片为多个任务单元，执行完一个任务单元后可以保存当前的状态，切换到 GUI 渲染线程去刷新页面，接下来再回到主线程并从上个断点继续执行任务**
+
+除此之外，对于每一个Fiber的同步任务来说，都拥有一个优先级，当主线程刚执行完一个任务 A 的一个分片，若此时出现了一个优先级更高的任务 B，React 就可能会把任务 A 废弃掉，待之后重新执行一次任务 A
+
+对于使用了 Fiber 的 React 来说，组件可以分为两个阶段，分别是 **Render/Reconciliation phase** 和 **Commit phase**
+
+- Render/Reconciliation phase —— 组件状态更新，执行 diff 算法，没有副作用
+- Commit phase —— 将 diff 结果渲染成 DOM，有副作用
+
+关于怎么重启执行，Fiber 是用了一个 `requestIdleCallback` 实现，不过浏览器兼容性不太好，用 `requestAnimationFrame` 也可以实现
+
+个人理解，React 的 Fiber 执行形式可以看成 ES6 中的 Generator，通过它能够得到一个可以暂停的函数任务
