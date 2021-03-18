@@ -24,6 +24,27 @@ lang: zh-CN
 - 块级元素可以包含行内元素和块级元素
 - **p 标签中不能嵌套 div 标签**
 
+## async vs defer
+
+### 共同点
+
+加上 `async` 或 `defer` 属性的脚本的 **加载过程 ** 都不会阻塞 HTML 的解析
+
+### 不同点
+
+- `async` —— 脚本加载完后会立刻开始脚本的执行，并停止对 HTML 的解析，待脚本执行完再继续 HTML 的解析
+  - 不可控
+  - 执行顺序按网络加载结果
+- `defer` —— 等整个HTML文档都解析完（ `DOMContentLoaded` 事件发生），脚本才开始执行
+  - 执行顺序按 HTML 文档顺序执行
+
+## DOMContentLoaded vs Load
+
+**当 HTML 文档解析完成就会触发 `DOMContentLoaded`，而所有资源加载完成之后，`load` 事件才会被触发**
+
+- `DOMContentLoaded` —— 当初始的 **HTML** 文档被完全加载和解析完成之后，`DOMContentLoaded` 事件被触发，而无需等待样式表、图像和子框架的完成加载
+- `load` —— 当一个资源及其依赖资源已完成加载时，将触发 load 事件
+
 ## 前端路由
 
 ### 背景
