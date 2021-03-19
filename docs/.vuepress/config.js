@@ -38,6 +38,7 @@ module.exports = {
         '设计模式',
         '数据结构',
         '算法',
+        'WebSocket',
         '操作系统'
       ]
     },
