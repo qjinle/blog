@@ -1131,8 +1131,33 @@ Promise实例的状态是可以改变的，但它 **只允许被改变一次**
 #### Promise 方法
 
 - **Promise.all(iterable)** --- 方法返回一个新的 promise 对象，该 promise 对象在 iterable 参数对象里所有的 promise 对象都成功的时候才会触发成功，一旦有任何一个 iterable 里面的 promise 对象失败则立即触发该 promise 对象的失败
+
+  ```js
+  function PromiseAll(promises) {
+    return new Promise((resolve, reject) => {
+      // 参数判断
+      if (!Array.isArray(promises)) {
+        throw new TypeError("promises must be an array")
+      }
+      let result = [] // 存放结果
+      let count = 0 // 记录有几个resolved
+      promises.forEach((promise, index) => {
+        promise.then((res) => {
+          result[index] = res
+          count++
+          count === promises.length && resolve(result) // 判断是否已经完成
+        }, (err) => {
+          reject(err)
+        })
+      })
+    })
+  }
+  ```
+
 - **Promise.race(iterable)** --- 当 iterable 参数里的任意一个子 promise 被成功或失败后，父 promise 马上也会用子 promise 的成功返回值或失败详情作为参数调用父 promise 绑定的相应处理函数，并返回该 promise 对象
+
 - **Promise.reject(reason)** ---  返回一个状态为失败的 Promise 对象，并将给定的失败信息传递给对应的处理方法
+
 - **Promise.resolve(value)** --- 返回一个 Promise 对象，但是这个对象的状态由你传入的 value 决定
   - 如果传入的是一个带有 then 方法的对象，返回的 Promise 对象的最终状态由 then 方法执行决定
   - 否则的话，返回的 Promise 对象状态为 fulfilled，同时这里的 value 会作为 then 方法中指定的 onfulfilled 的入参
