@@ -122,7 +122,7 @@ Array.isArray(arr)
 ```js
 function flat(arr) {
     // 验证 arr 中，还有没有深层数组 [1, 2, [3, 4]]
-    const isDeep = arr.some(item => item instanceof Array)
+    const isDeep = arr.some(item => Array.isArray(item))
     if (!isDeep) {
         return arr // 已经是 flatern [1, 2, 3, 4]
     }
